@@ -91,6 +91,24 @@ export default function ClientPage({ initialEvents, initialNews }: { initialEven
     liff.login();
   };
 
+  const handleShare = async () => {
+    if (!selectedImage) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "ภาพกิจกรรม",
+          text: "ดูภาพกิจกรรมจากไทยงาม",
+          url: selectedImage,
+        });
+      } else {
+        await navigator.clipboard.writeText(selectedImage);
+        alert("คัดลอกลิงก์รูปภาพแล้ว!");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
+  };
+
   if (isReady && !profile) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center p-6 w-full mx-auto transition-colors">
@@ -185,9 +203,14 @@ export default function ClientPage({ initialEvents, initialNews }: { initialEven
 
       {selectedImage && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setSelectedImage(null)}>
-          <button className="absolute top-6 right-6 md:top-10 md:right-10 w-10 h-10 md:w-14 md:h-14 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors z-[60]" onClick={() => setSelectedImage(null)}>
-            <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+          <div className="absolute top-6 right-6 md:top-10 md:right-10 flex gap-4 z-[60]">
+            <button className="w-10 h-10 md:w-14 md:h-14 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
+              <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+            </button>
+            <button className="w-10 h-10 md:w-14 md:h-14 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors" onClick={() => setSelectedImage(null)}>
+              <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
           <div className="relative w-full max-w-5xl h-[85vh] z-50 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             <TransformWrapper
               initialScale={1}
