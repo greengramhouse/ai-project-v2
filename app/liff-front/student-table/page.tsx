@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from 'swr';
 import { formatThaiDate } from "@/lib/formatThaiDate";
@@ -98,155 +98,156 @@ function StudentTableContent() {
           <div className="space-y-4">
             {/* ช่องค้นหา */}
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
               <input
                 type="text"
+                placeholder="ค้นหาด้วยชื่อ หรือรหัสประจำตัว..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl pl-11 pr-4 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#06C755] focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-[#06C755]/20 transition-all"
-                placeholder="ค้นหาชื่อ, นามสกุล, หรือรหัส..."
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-2xl text-sm focus:ring-2 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all dark:text-white"
               />
+              <svg className="absolute left-4 top-3.5 w-4.5 h-4.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
 
-            {/* ตัวกรองห้องเรียน */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">ห้องเรียน :</label>
-              <select
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:border-[#06C755] focus:ring-2 focus:ring-[#06C755]/20 appearance-none transition-colors"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
-                  backgroundSize: "10px 10px",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 12px center"
-                }}
-              >
-                {classrooms.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+            {/* ปุ่มกรองห้องเรียน */}
+            <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+              {classrooms.map(cls => (
+                <button
+                  key={cls}
+                  onClick={() => setSelectedClass(cls)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-95 border
+                    ${selectedClass === cls 
+                      ? "bg-[#06C755] text-white border-[#06C755] shadow-md shadow-green-100 dark:shadow-none" 
+                      : "bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 border-gray-100 dark:border-gray-600"}`}
+                >
+                  ห้อง {cls}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Table / List Section */}
-      <div className="flex-1 overflow-y-auto px-5 pb-4 hide-scrollbar">
-        {filteredStudents.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 h-full flex flex-col justify-center">
-            <svg className="w-16 h-16 mx-auto text-gray-200 dark:text-gray-700 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p>ไม่พบข้อมูลที่ค้นหา</p>
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-2 transition-colors">
-            {currentData.map((student, index) => {
-              const isExpanded = expandedId === student.student_id;
-              
-              return (
-                <div key={student.student_id} className="border-b border-gray-100 dark:border-gray-700 last:border-b-0">
-                  <div 
-                    onClick={() => toggleExpand(student.student_id)}
-                    className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-green-50/50 dark:bg-green-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-                  >
-                    <div className="flex items-center gap-4 overflow-hidden">
-                      <div className="text-xs font-bold text-gray-400 dark:text-gray-500 w-6 shrink-0 text-center">
-                        {student.no || (startIndex + index + 1)}
-                      </div>
-                      <div className="truncate">
-                        <p className="text-xs font-bold text-[#06C755] mb-0.5 tracking-wide">{student.student_id}</p>
-                        <p className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">
-                          {student.prefix}{student.first_name} {student.last_name}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#06C755]' : ''}`}>
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
+      {/* 3. Student List Table */}
+      <div className="flex-1 overflow-y-auto px-5 pt-2 pb-24 hide-scrollbar">
+        <div className="space-y-3">
+          {currentData.length > 0 ? (
+            currentData.map((student) => {
+              const studentIdStr = student.student_id?.toString() || "";
+              const isExpanded = expandedId === studentIdStr;
 
-                  <div 
-                    className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50/80 dark:bg-gray-900/50 ${isExpanded ? 'max-h-60 opacity-100 border-t border-gray-100 dark:border-gray-700' : 'max-h-0 opacity-0'}`}
+              return (
+                <div 
+                  key={studentIdStr}
+                  className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-50 dark:border-gray-700 transition-all"
+                >
+                  <button 
+                    onClick={() => toggleExpand(studentIdStr)}
+                    className="w-full px-4 py-4 flex items-center justify-between group active:bg-gray-50 dark:active:bg-gray-700/50"
                   >
-                    <div className="p-5 grid grid-cols-2 gap-y-4 gap-x-2">
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">ห้องเรียน</p>
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{student.classroom || "-"}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 rounded-xl flex items-center justify-center font-bold text-xs shrink-0">
+                        {student.prefix === "เด็กชาย" || student.prefix === "นาย" ? "👦🏻" : "👧🏻"}
                       </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">วันเกิด</p>
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{formatThaiDate(student.birth_date)}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">สถานะ</p>
-                        <span className="inline-block px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-lg">
-                          {student.remark || "รับใหม่"}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">เลขบัตรประชาชน</p>
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{student.citizen_id || "-"}</p>
+                      <div className="text-left">
+                        <div className="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">
+                          {student.prefix}{student.first_name} {student.last_name}
+                        </div>
+                        <div className="text-[11px] text-gray-400 font-medium">รหัส: {student.student_id} • ห้อง {student.classroom}</div>
                       </div>
                     </div>
-                  </div>
+                    <svg 
+                      className={`w-5 h-5 text-gray-300 transition-transform duration-300 ${isExpanded ? "rotate-180 text-[#06C755]" : ""}`} 
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-5 pt-1 border-t border-gray-50 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">เลขประจำตัวประชาชน</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{student.citizen_id || "-"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">วันเกิด</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{formatThaiDate(student.birth_date)}</p>
+                        </div>
+                        <div className="col-span-2 space-y-1">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">หมายเหตุ / ข้อมูลเพิ่มเติม</p>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-xl border border-gray-100 dark:border-gray-600 italic">
+                            {student.remark || "ไม่มีข้อมูลหมายเหตุ"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
-            })}
+            })
+          ) : (
+            <div className="text-center py-20">
+              <div className="text-4xl mb-3">🔍</div>
+              <p className="text-gray-400 dark:text-gray-500 font-medium">ไม่พบข้อมูลนักเรียนที่ค้นหา</p>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8 pb-10">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 dark:border-gray-700 disabled:opacity-30 disabled:pointer-events-none active:scale-90 transition-all dark:text-white"
+            >
+              ←
+            </button>
+            <div className="text-xs font-bold text-gray-500">หน้า {currentPage} จาก {totalPages}</div>
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 dark:border-gray-700 disabled:opacity-30 disabled:pointer-events-none active:scale-90 transition-all dark:text-white"
+            >
+              →
+            </button>
           </div>
         )}
       </div>
-
-      {/* 4. Pagination */}
-      {filteredStudents.length > 0 && (
-        <div className="shrink-0 px-5 pb-8 pt-2 bg-gray-50 dark:bg-gray-900 z-30 transition-colors">
-          <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#06C755] disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
-            <div className="text-xs font-bold text-gray-600 dark:text-gray-300">
-              หน้า <span className="text-[#06C755]">{currentPage}</span> จาก {totalPages}
-            </div>
-            
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#06C755] disabled:text-gray-300 dark:disabled:text-gray-600 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
 
 export default function StudentTablePage() {
+  const { profile, isReady, theme, toggleTheme, isTeacher, isAdmin } = useLiff();
   const router = useRouter();
-  const { theme, toggleTheme } = useLiff(); // 🆕 เรียกใช้ Context
+
+  // 🔒 ระบบป้องกัน: ตรวจสอบสิทธิ์ (Teacher หรือ Admin เท่านั้น)
+  useEffect(() => {
+    if (isReady) {
+      if (!profile) {
+        router.push("/liff-front");
+      } else if (!isTeacher && !isAdmin) {
+        alert("ขออภัยค่ะ หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น");
+        router.push("/liff-front");
+      }
+    }
+  }, [isReady, profile, isTeacher, isAdmin, router]);
+
+  if (!isReady || !profile || (!isTeacher && !isAdmin)) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center transition-colors">
+        <div className="w-12 h-12 border-4 border-[#06C755]/20 border-t-[#06C755] rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">กำลังเตรียมข้อมูลนักเรียน...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-[100dvh] bg-gray-50 dark:bg-gray-900 max-w-md mx-auto shadow-2xl relative overflow-hidden flex flex-col transition-colors duration-300">
-      
+    <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'} max-w-md mx-auto shadow-2xl relative overflow-hidden flex flex-col transition-colors duration-300`}>
       <style dangerouslySetInnerHTML={{__html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -257,7 +258,7 @@ export default function StudentTablePage() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => router.push('/liff-front')}
-            className="p-2 -ml-2 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors active:scale-95"
+            className="p-2 -ml-2 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors active:scale-95 flex items-center justify-center"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
