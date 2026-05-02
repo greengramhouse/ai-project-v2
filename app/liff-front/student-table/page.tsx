@@ -21,13 +21,12 @@ type Student = {
 const fetcher = (url: string) => fetch(url).then(res => res.json()).then(data => Array.isArray(data) ? data : data.data || []);
 
 function StudentTableContent() {
-  const { data: students, error } = useSWR<Student[]>(
+  const { data: students, error, isLoading } = useSWR<Student[]>(
     "https://script.google.com/macros/s/AKfycbwGKkKFJhysM4U02sUEd-v01wTCd7pBiHxFcTi7gPNCWybgT1xT6Md3e6bZyWry2eZx/exec?action=getStudents",
     fetcher,
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,
-      suspense: true,
     }
   );
 
@@ -72,6 +71,15 @@ function StudentTableContent() {
   const toggleExpand = (id: string) => {
     setExpandedId(prev => prev === id ? null : id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center h-full min-h-[50vh]">
+        <div className="w-10 h-10 border-4 border-[#06C755]/20 border-t-[#06C755] rounded-full animate-spin mb-4 mt-10"></div>
+        <p className="text-gray-400 dark:text-gray-500 text-sm">กำลังโหลดข้อมูลนักเรียน...</p>
+      </div>
+    );
+  }
 
   if (error) {
     return (

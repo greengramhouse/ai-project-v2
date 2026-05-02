@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, Suspense } from "react";
 import liff from "@line/liff";
 
 // ⚠️ ในโปรเจกต์จริง ใช้บรรทัดล่างนี้เพื่อเปิดระบบ Routing ของ Next.js
@@ -24,7 +24,7 @@ export const LiffContext = createContext<{
 
 export const useLiff = () => useContext(LiffContext);
 
-export default function LiffLayout({
+function LiffLayoutInner({
   children,
 }: {
   children: React.ReactNode;
@@ -61,8 +61,6 @@ export default function LiffLayout({
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
         } else {
-          // ❌ ปิดการล็อกอินอัตโนมัติ เพื่อให้ผู้ใช้ค้างอยู่หน้าแรก และต้องกดปุ่ม "เข้าสู่ระบบด้วย LINE" เอง
-          // liff.login();
           setProfile(null);
         }
         setIsReady(true);
@@ -91,6 +89,7 @@ export default function LiffLayout({
     }
   };
 
+  // ถ้า liffError มีค่า ให้แสดงหน้า Error (กรณีนี้หยุดการทำงานได้)
   if (liffError) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-red-50 p-4">
@@ -104,25 +103,29 @@ export default function LiffLayout({
     );
   }
 
-  if (!isReady) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">
-            กำลังเชื่อมต่อระบบ LINE...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme }}>
-      <div className="liff-container min-h-screen ove bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+      {/* หน้าจอโหลดข้อมูลระหว่างรอ LIFF พร้อม */}
+      {!isReady && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">
+              กำลังเชื่อมต่อระบบ LINE...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ซ่อนเนื้อหาถ้ายังไม่พร้อม แต่ต้องเรนเดอร์ลงใน DOM เพื่อให้ Next.js หา Suspense เจอ */}
+      <div 
+        className={`liff-container min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300 ${!isReady ? 'hidden' : ''}`}
+      >
         {/* พื้นที่สำหรับแสดงเนื้อหาแต่ละหน้า (Page Content) */}
         {/* เพิ่ม pb-20 เพื่อไม่ให้แถบเมนูด้านล่างไปบังเนื้อหาส่วนท้าย */}
-        <div className="pb-4">{children}</div>
+        <div className="pb-4">
+          {children}
+        </div>
 
         {/* ย้าย Bottom Navigation มาไว้ตรงนี้ ให้แสดงตลอดทุกหน้า (เมื่อ Login แล้วเท่านั้น) */}
         {profile && (
@@ -208,5 +211,17 @@ export default function LiffLayout({
         )}
       </div>
     </LiffContext.Provider>
+  );
+}
+
+export default function LiffLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-gray-50 p-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    }>
+      <LiffLayoutInner>{children}</LiffLayoutInner>
+    </Suspense>
   );
 }

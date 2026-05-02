@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { useParams, useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ type NewsData = {
   createdAt?: string;
 };
 
-export default function NewsDetailPage() {
+function NewsDetailContent() {
   const params = useParams();
   const router = useRouter();
   const { theme, toggleTheme } = useLiff();
@@ -191,5 +191,18 @@ export default function NewsDetailPage() {
       `}} />
 
     </div>
+  );
+}
+
+export default function NewsDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center transition-colors">
+        <div className="w-12 h-12 border-4 border-[#06C755]/20 border-t-[#06C755] rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">กำลังโหลดเนื้อหาข่าว...</p>
+      </div>
+    }>
+      <NewsDetailContent />
+    </Suspense>
   );
 }
