@@ -5,6 +5,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import useSWR from "swr"; 
+import { useRouter } from "next/navigation";
 
 // ⚠️ หมายเหตุ: สำหรับการแสดงผลพรีวิวใน Canvas นี้ ผมได้ทำการจำลอง useLiff ขึ้นมาเพื่อให้โค้ดคอมไพล์ผ่าน
 // ในโปรเจกต์ Next.js จริงของคุณ ให้ลบ mock ด้านล่างนี้ออก แล้วใช้คำสั่ง import ด้านล่างแทนนะครับ
@@ -112,7 +113,8 @@ const getStatusDisplay = (status: string) => {
 };
 
 export default function DocumentPage() {
-  const { profile: liffProfile, theme, toggleTheme } = useLiff();
+  const { profile: liffProfile, theme, toggleTheme, isReady } = useLiff();
+  const router = useRouter();
   
   const [fbUser, setFbUser] = useState<User | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -144,6 +146,13 @@ export default function DocumentPage() {
 
     return () => unsubscribe();
   }, []);
+
+  // 🔒 ระบบป้องกัน: หาก LIFF โหลดเสร็จแล้วแต่ไม่มี Profile แปลว่ายังไม่ได้ Login ให้เด้งกลับไปหน้าแรก
+  useEffect(() => {
+    if (isReady && !liffProfile) {
+      router.push("/liff-front");
+    }
+  }, [isReady, liffProfile, router]);
 
   const fetchDocuments = async (currentUserId: string, viewAll: boolean): Promise<DocumentData[]> => {
     if (!db) return [];
