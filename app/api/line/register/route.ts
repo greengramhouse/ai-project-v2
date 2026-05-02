@@ -4,21 +4,24 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { lineUserId, firstName, lastName } = body;
+    const { lineUserId, firstName, lastName, displayName, pictureUrl } = body;
 
- await prisma.userProfile.upsert({
-  where: { lineUserId: lineUserId },
-  update: { 
-    firstName: firstName, 
-    lastName: lastName 
-  },
-  create: { 
-    lineUserId: lineUserId,
-    firstName: firstName,
-    lastName: lastName,
-    // (หากคุณมีฟิลด์บังคับอื่นๆ ใน DB ให้ใส่เพิ่มตรงนี้ด้วย)
-  }
-});
+    await prisma.userProfile.upsert({
+      where: { lineUserId: lineUserId },
+      update: { 
+        firstName: firstName, 
+        lastName: lastName,
+        displayName: displayName,
+        pictureUrl: pictureUrl
+      },
+      create: { 
+        lineUserId: lineUserId,
+        firstName: firstName,
+        lastName: lastName,
+        displayName: displayName,
+        pictureUrl: pictureUrl
+      }
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
