@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* 1. 🆕 สั่งให้ Tailwind ใช้คลาส .dark ในการทำงาน (แทนการอิงระบบเครื่องอย่างเดียว) */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), var(--font-anuphan);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* 2. 🆕 กำหนดสีตัวแปรเมื่อมีการใส่คลาส .dark จากปุ่มสลับธีม */
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* (ถ้าผู้ใช้ไม่ได้กดปุ่ม ให้เปลี่ยนตามธีมระบบเครื่องอัตโนมัติ) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  /* 3. 🆕 เปลี่ยนจากล็อกสีขาวตายตัว มาใช้ตัวแปร CSS แทน */
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease; /* เพิ่มเอฟเฟกต์ค่อยๆ เปลี่ยนสี */
+}
