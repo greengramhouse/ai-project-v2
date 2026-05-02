@@ -21,15 +21,6 @@ export const LiffContext = createContext<{
 });
 
 const ADMIN_USER_IDS = [process.env.NEXT_PUBLIC_ADMIN_UID].filter(Boolean);
-// 👨‍🏫 ดึง LINE User ID ของคุณครูจาก .env (คั่นด้วยลูกน้ำ)
-const envTeachers = process.env.NEXT_PUBLIC_TEACHER 
-  ? process.env.NEXT_PUBLIC_TEACHER.split(',').map(id => id.trim()).filter(Boolean) 
-  : [];
-
-const TEACHER_USER_IDS = [
-  process.env.NEXT_PUBLIC_ADMIN_UID, // ให้ Admin เป็นครูด้วย
-  ...envTeachers
-].filter(Boolean);
 
 export const useLiff = () => useContext(LiffContext);
 
@@ -71,8 +62,29 @@ function LiffLayoutInner({
         if (liff.isLoggedIn()) {
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
-          setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
-          setIsTeacher(TEACHER_USER_IDS.includes(userProfile.userId) || ADMIN_USER_IDS.includes(userProfile.userId));
+
+          // ดึงสิทธิ์ (Role) จากฐานข้อมูล
+          try {
+            const res = await fetch(`/api/user/${userProfile.userId}`);
+            if (res.ok) {
+              const data = await res.json();
+              const dbRole = data.role; // "admin", "teacher", "user"
+              
+              const isDbAdmin = dbRole === "admin" || ADMIN_USER_IDS.includes(userProfile.userId);
+              const isDbTeacher = dbRole === "teacher" || isDbAdmin;
+              
+              setIsAdmin(isDbAdmin);
+              setIsTeacher(isDbTeacher);
+            } else {
+              setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
+              setIsTeacher(ADMIN_USER_IDS.includes(userProfile.userId));
+            }
+          } catch (e) {
+            console.error("Error fetching role:", e);
+            setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
+            setIsTeacher(ADMIN_USER_IDS.includes(userProfile.userId));
+          }
+
         } else {
           setProfile(null);
           setIsAdmin(false);

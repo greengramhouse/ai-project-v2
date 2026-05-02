@@ -59,6 +59,7 @@ model UserProfile {
   pictureUrl  String?          // รูปโปรไฟล์
   firstName   String?
   lastName    String?
+  role        String   @default("user") // "user", "teacher", "admin"
   // Relations: เชื่อมไปยังประวัติแชทและเซสชัน OCR
   ocrSessions OcrSession[]
   
