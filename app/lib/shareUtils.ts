@@ -11,8 +11,26 @@ const getHexColor = (colorClass: string) => {
   return "#3b82f6";
 };
 
+const getFirstImage = (news: any) => {
+  if (news.images && Array.isArray(news.images) && news.images.length > 0) {
+    const url = news.images[0];
+    if (typeof url === "string" && url.startsWith("https://")) return url;
+  }
+  if (news.image && typeof news.image === "string" && news.image.startsWith("https://")) {
+    return news.image;
+  }
+  if (news.content && typeof news.content === "string") {
+    const match = news.content.match(/<img[^>]+src="([^">]+)"/);
+    if (match && match[1] && match[1].startsWith("https://")) {
+      return match[1];
+    }
+  }
+  return null;
+};
+
 export const shareNews = async (news: any) => {
   const newsUrl = `${window.location.origin}/liff-front/newlist/${news.id}`;
+  const firstImage = getFirstImage(news);
 
   if (liff.isLoggedIn() && liff.isInClient() && liff.isApiAvailable("shareTargetPicker")) {
     try {
@@ -37,6 +55,15 @@ export const shareNews = async (news: any) => {
             backgroundColor: getHexColor(news.color),
             paddingAll: "12px"
           },
+          ...(firstImage ? {
+            hero: {
+              type: "image",
+              url: firstImage,
+              size: "full",
+              aspectRatio: "20:13",
+              aspectMode: "cover"
+            }
+          } : {}),
           body: {
             type: "box",
             layout: "vertical",
