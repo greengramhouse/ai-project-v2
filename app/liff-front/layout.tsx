@@ -9,12 +9,27 @@ export const LiffContext = createContext<{
   isReady: boolean;
   theme: string;
   toggleTheme: () => void;
+  isAdmin: boolean;
+  isTeacher: boolean;
 }>({
   profile: null,
   isReady: false,
   theme: "light",
   toggleTheme: () => { },
+  isAdmin: false,
+  isTeacher: false,
 });
+
+const ADMIN_USER_IDS = [process.env.NEXT_PUBLIC_ADMIN_UID].filter(Boolean);
+// 👨‍🏫 ดึง LINE User ID ของคุณครูจาก .env (คั่นด้วยลูกน้ำ)
+const envTeachers = process.env.NEXT_PUBLIC_TEACHER 
+  ? process.env.NEXT_PUBLIC_TEACHER.split(',').map(id => id.trim()).filter(Boolean) 
+  : [];
+
+const TEACHER_USER_IDS = [
+  process.env.NEXT_PUBLIC_ADMIN_UID, // ให้ Admin เป็นครูด้วย
+  ...envTeachers
+].filter(Boolean);
 
 export const useLiff = () => useContext(LiffContext);
 
@@ -27,6 +42,8 @@ function LiffLayoutInner({
   const [profile, setProfile] = useState<any>(null);
   const [liffError, setLiffError] = useState<string | null>(null);
   const [theme, setTheme] = useState("light");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
 
   // นำ Navigation Hooks มาไว้ใน Layout
   const router = useRouter();
@@ -54,8 +71,12 @@ function LiffLayoutInner({
         if (liff.isLoggedIn()) {
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
+          setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
+          setIsTeacher(TEACHER_USER_IDS.includes(userProfile.userId) || ADMIN_USER_IDS.includes(userProfile.userId));
         } else {
           setProfile(null);
+          setIsAdmin(false);
+          setIsTeacher(false);
         }
         setIsReady(true);
       } catch (error: any) {
@@ -64,6 +85,8 @@ function LiffLayoutInner({
           userId: "U_MOCK_USER_ID",
           displayName: "ผู้ใช้งานระบบ (Demo)",
         });
+        setIsAdmin(false);
+        setIsTeacher(false);
         setIsReady(true);
       }
     };
@@ -98,7 +121,7 @@ function LiffLayoutInner({
   }
 
   return (
-    <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme }}>
+    <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme, isAdmin, isTeacher }}>
       {/* หน้าจอโหลดข้อมูลระหว่างรอ LIFF พร้อม */}
       {!isReady && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">

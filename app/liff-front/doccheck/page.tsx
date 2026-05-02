@@ -113,7 +113,7 @@ const getStatusDisplay = (status: string) => {
 };
 
 export default function DocumentPage() {
-  const { profile: liffProfile, theme, toggleTheme, isReady } = useLiff();
+  const { profile: liffProfile, theme, toggleTheme, isReady, isTeacher } = useLiff();
   const router = useRouter();
   
   const [fbUser, setFbUser] = useState<User | null>(null);
@@ -148,11 +148,17 @@ export default function DocumentPage() {
   }, []);
 
   // 🔒 ระบบป้องกัน: หาก LIFF โหลดเสร็จแล้วแต่ไม่มี Profile แปลว่ายังไม่ได้ Login ให้เด้งกลับไปหน้าแรก
+  // หรือถ้าไม่ใช่ครู ก็ไม่ให้เข้าหน้านี้
   useEffect(() => {
-    if (isReady && !liffProfile) {
-      router.push("/liff-front");
+    if (isReady) {
+      if (!liffProfile) {
+        router.push("/liff-front");
+      } else if (!isTeacher) {
+        alert("ขออภัยค่ะ หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น");
+        router.push("/liff-front");
+      }
     }
-  }, [isReady, liffProfile, router]);
+  }, [isReady, liffProfile, isTeacher, router]);
 
   const fetchDocuments = async (currentUserId: string, viewAll: boolean): Promise<DocumentData[]> => {
     if (!db) return [];
