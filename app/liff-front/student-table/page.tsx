@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useSWR from 'swr';
 import { formatThaiDate } from "@/lib/formatThaiDate";
 import { useLiff } from "../layout"; // 🆕 นำเข้า Context เพื่อใช้งาน Theme
+import Swal from "sweetalert2";
 
 type Student = {
   no: string | number;
@@ -231,7 +232,12 @@ export default function StudentTablePage() {
       if (!profile) {
         router.push("/liff-front");
       } else if (!isTeacher && !isAdmin) {
-        alert("ขออภัยค่ะ หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น");
+              Swal.fire({
+                icon: "warning",
+                title: "ขออภัยค่ะ",
+                text: "หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น",
+                confirmButtonColor: "#06C755",
+              });
         router.push("/liff-front");
       }
     }

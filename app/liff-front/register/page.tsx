@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLiff } from "../layout"; // 🆕 นำเข้า Context เพื่อดึง Profile และ Theme
+import Swal from "sweetalert2";
 
 export default function RegisterTeacherPage() {
   // 1. รับค่า Profile และ Theme โดยตรงจาก Layout (ไม่ต้องทำ liff.init ซ้ำแล้ว)
@@ -33,10 +34,20 @@ export default function RegisterTeacherPage() {
       });
 
       if (response.ok) {
-        alert("ลงทะเบียนข้อมูลคุณครูสำเร็จ!");
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "บันทึกข้อมูลคุณครูสำเร็จ",
+          confirmButtonColor: "#06C755",
+        });
         router.push('/liff-front'); 
       } else {
-        alert("เกิดข้อผิดพลาดในการลงทะเบียน");
+        Swal.fire({
+          icon: "warning",
+          title: "ขออภัยค่ะ",
+          text: "หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น",
+          confirmButtonColor: "#06C755",
+        });
       }
     } catch (error) {
       console.error(error);

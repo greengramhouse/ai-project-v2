@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import useSWR from "swr"; 
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 
 // ⚠️ หมายเหตุ: สำหรับการแสดงผลพรีวิวใน Canvas นี้ ผมได้ทำการจำลอง useLiff ขึ้นมาเพื่อให้โค้ดคอมไพล์ผ่าน
 // ในโปรเจกต์ Next.js จริงของคุณ ให้ลบ mock ด้านล่างนี้ออก แล้วใช้คำสั่ง import ด้านล่างแทนนะครับ
 import { useLiff } from "../layout";
+import Swal from "sweetalert2";
 
 // const useLiff = () => {
 //   const [profile, setProfile] = useState<any>(null);
@@ -30,18 +31,18 @@ let app: any, auth: any, db: any, appId = 'calendar-app';
 
 if (typeof window !== "undefined") {
   try {
-    const firebaseConfig = typeof (window as any).__firebase_config !== 'undefined' 
-      ? JSON.parse((window as any).__firebase_config) 
+    const firebaseConfig = typeof (window as any).__firebase_config !== 'undefined'
+      ? JSON.parse((window as any).__firebase_config)
       : {
-          apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        };
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      };
 
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
     db = getFirestore(app);
-    
+
     if (typeof (window as any).__app_id !== 'undefined' && (window as any).__app_id) {
       appId = (window as any).__app_id;
     }
@@ -75,7 +76,7 @@ type DocumentData = {
   timeline?: TimelineEvent[];
   updatedAt?: string;
   updatedBy?: string;
-  [key: string]: any; 
+  [key: string]: any;
 };
 
 // ฟังก์ชันสำหรับจัดรูปแบบวันที่ภาษาไทย
@@ -115,11 +116,11 @@ const getStatusDisplay = (status: string) => {
 export default function DocumentPage() {
   const { profile: liffProfile, theme, toggleTheme, isReady, isTeacher } = useLiff();
   const router = useRouter();
-  
+
   const [fbUser, setFbUser] = useState<User | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  
+
   const isCurrentUserAdmin = liffProfile && ADMIN_USER_IDS.includes(liffProfile.userId);
 
   useEffect(() => {
@@ -154,7 +155,12 @@ export default function DocumentPage() {
       if (!liffProfile) {
         router.push("/liff-front");
       } else if (!isTeacher) {
-        alert("ขออภัยค่ะ หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น");
+        Swal.fire({
+          icon: "warning",
+          title: "ขออภัยค่ะ",
+          text: "หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น",
+          confirmButtonColor: "#06C755",
+        });
         router.push("/liff-front");
       }
     }
@@ -165,18 +171,18 @@ export default function DocumentPage() {
 
     const docsRef = collection(db, 'artifacts', appId, 'public', 'data', 'documents');
     const snapshot = await getDocs(docsRef);
-    
+
     let fetchedDocs = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })) as DocumentData[]; 
-    
+    })) as DocumentData[];
+
     if (!viewAll) {
-      fetchedDocs = fetchedDocs.filter(doc => 
+      fetchedDocs = fetchedDocs.filter(doc =>
         doc.docLineUserId === currentUserId || doc.createdBy === fbUser?.uid
       );
     }
-    
+
     fetchedDocs.sort((a, b) => {
       return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
@@ -184,17 +190,17 @@ export default function DocumentPage() {
     return fetchedDocs;
   };
 
-  const { 
-    data: documents = [], 
-    error, 
-    isLoading: docsLoading 
+  const {
+    data: documents = [],
+    error,
+    isLoading: docsLoading
   } = useSWR<DocumentData[]>(
     (fbUser && liffProfile) ? ['documents', liffProfile.userId, isAdminMode] : null,
     ([, userId, adminMode]) => fetchDocuments(userId as string, adminMode as boolean),
     {
       revalidateOnFocus: false,
       dedupingInterval: 10000,
-      keepPreviousData: true, 
+      keepPreviousData: true,
     }
   );
 
@@ -220,7 +226,7 @@ export default function DocumentPage() {
       {/* App Header */}
       <header className="bg-white dark:bg-gray-800 px-5 pt-10 pb-4 sticky top-0 z-40 shadow-sm flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleGoBack}
             className="p-2 -ml-2 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors active:scale-95 flex items-center justify-center"
           >
@@ -239,7 +245,7 @@ export default function DocumentPage() {
         </div>
 
         {/* ☀️/🌙 ปุ่มสลับธีม */}
-        <button 
+        <button
           onClick={toggleTheme}
           className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center text-lg transition-all active:scale-95 shadow-sm"
           aria-label="Toggle Dark Mode"
@@ -261,7 +267,7 @@ export default function DocumentPage() {
               </span>
               <span className="text-[10px] text-green-600 dark:text-green-500 mt-0.5">เปิดเพื่อดูเอกสารของทุกคนในระบบ</span>
             </div>
-            
+
             <button
               onClick={() => setIsAdminMode(!isAdminMode)}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none ${isAdminMode ? 'bg-[#06C755]' : 'bg-gray-300 dark:bg-gray-600'}`}
@@ -302,11 +308,11 @@ export default function DocumentPage() {
 
                 const latestStatus = timelineEvents[timelineEvents.length - 1].status;
                 const isSigned = latestStatus === 'SIGNED';
-                
+
                 return (
                   <div key={doc.id} className="transition-all duration-300">
                     {/* Header Row */}
-                    <div 
+                    <div
                       onClick={() => toggleExpand(doc.id)}
                       className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-green-50/50 dark:bg-green-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                     >
@@ -327,7 +333,7 @@ export default function DocumentPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className={`text-gray-400 dark:text-gray-500 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#06C755]' : ''}`}>
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -336,7 +342,7 @@ export default function DocumentPage() {
                     </div>
 
                     {/* Ribbon Details (Accordion) */}
-                    <div 
+                    <div
                       className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50/80 dark:bg-gray-900/50 ${isExpanded ? 'max-h-[1000px] opacity-100 border-t border-gray-100 dark:border-gray-700' : 'max-h-0 opacity-0'}`}
                     >
                       <div className="p-5 space-y-5">
@@ -365,7 +371,7 @@ export default function DocumentPage() {
                               {timelineEvents.map((event, idx) => {
                                 const display = getStatusDisplay(event.status);
                                 const isLast = idx === timelineEvents.length - 1;
-                                
+
                                 return (
                                   <div key={idx} className="relative pl-5">
                                     {/* จุด Timeline พร้อม Animation */}
@@ -375,7 +381,7 @@ export default function DocumentPage() {
                                       )}
                                       <div className={`relative w-full h-full rounded-full border-2 ${display.dot} ${isLast ? 'ring-4 ring-opacity-30 shadow-md scale-110' : ''}`}></div>
                                     </div>
-                                    
+
                                     {/* เนื้อหา Timeline */}
                                     <div className="flex flex-col gap-0.5">
                                       <span className={`text-xs font-bold ${display.textCol}`}>{display.text}</span>
