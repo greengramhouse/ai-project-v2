@@ -1,4 +1,5 @@
 import liff from "@line/liff";
+import Swal from "sweetalert2";
 
 const getHexColor = (colorClass: string) => {
   if (!colorClass) return "#3b82f6"; // Default blue
@@ -109,7 +110,12 @@ export const shareNews = async (news: any) => {
 
       const result = await liff.shareTargetPicker([flexMessage as any]);
       if (result) {
-        console.log("Shared via LINE ShareTargetPicker", result);
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "แชร์ข่าวสารเรียบร้อยแล้ว",
+          confirmButtonColor: "#06C755",
+        });
       } else {
         console.log("User cancelled ShareTargetPicker");
       }
@@ -131,9 +137,20 @@ const fallbackShare = async (news: any, url: string) => {
         text: `อ่านข่าวสาร: ${news.title}`,
         url: url,
       });
+      Swal.fire({
+        icon: "success",
+        title: "สำเร็จ",
+        text: "แชร์ข่าวสารเรียบร้อยแล้ว",
+        confirmButtonColor: "#06C755",
+      });
     } else {
       await navigator.clipboard.writeText(url);
-      alert("คัดลอกลิงก์ข่าวสารแล้ว!");
+      Swal.fire({
+        icon: "success",
+        title: "สำเร็จ",
+        text: "คัดลอกลิงก์ข่าวสารแล้ว",
+        confirmButtonColor: "#06C755",
+      });
     }
   } catch (error) {
     console.error("Error fallback sharing", error);

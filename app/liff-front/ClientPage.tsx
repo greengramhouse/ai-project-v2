@@ -20,6 +20,7 @@ import {
 import NewsList from "../components/NewList";
 import Header from "../components/Header";
 import EventListCach from "../components/EventListCach";
+import Swal from "sweetalert2";
 
 let app: any,
   auth: any,
@@ -102,7 +103,12 @@ export default function ClientPage({ initialEvents, initialNews }: { initialEven
         });
       } else {
         await navigator.clipboard.writeText(selectedImage);
-        alert("คัดลอกลิงก์รูปภาพแล้ว!");
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "คัดลอกลิงก์รูปภาพแล้ว",
+          confirmButtonColor: "#06C755",
+        });
       }
     } catch (error) {
       console.error("Error sharing:", error);
