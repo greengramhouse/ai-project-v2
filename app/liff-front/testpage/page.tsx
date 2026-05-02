@@ -1,4 +1,4 @@
-import EventListja from "@/app/components/EventListCach";
+import EventListCach from "@/app/components/EventListCach";
 import { getPublicEvents } from "@/lib/getEventData";
 import { Suspense } from "react";
 
@@ -6,10 +6,10 @@ import { Suspense } from "react";
 async function EventListWrapper() {
   const events = await getPublicEvents(); // รอข้อมูลจาก Firebase / Cache
 
-  return <EventListja events={events} compactMode={true} />;
+  return <EventListCach events={events} compactMode={true} />;
 }
 
-export default async function HomePage() {
+export default async function TestPage() {
   return (
     <main className="...">
       <h2>ปฏิทินกิจกรรม 📅</h2>

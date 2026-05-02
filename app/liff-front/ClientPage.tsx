@@ -5,6 +5,7 @@ import liff from "@line/liff";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useLiff } from "./layout";
 
 import { initializeApp, getApps, getApp } from "firebase/app";
@@ -134,7 +135,7 @@ export default function ClientPage({ initialEvents, initialNews }: { initialEven
               <span className="text-[11px] md:text-sm text-gray-600 dark:text-gray-300 font-medium text-center">เอกสาร</span>
             </Link>
             <Link href="/" className="flex flex-col items-center group">
-              <div className="w-14 h-14 md:w-20 md:h-20 bg-emerald-100 text-emerald-600 rounded-2xl md:rounded-3xl flex items-center justify-center text-2xl md:text-3xl mb-2 group-hover:-translate-y-1 group-active:scale-95 transition-all shadow-sm">⚙️</div>
+              <div className="w-14 h-14 md:w-20 md:h-20 bg-emerald-100 text-emerald-600 rounded-2xl md:rounded-3xl flex items-center justify-center text-2xl md:text-3xl mb-2 group-hover:-translate-y-1 group-active:scale-95 transition-all shadow-sm">🧑🏻‍🦱</div>
               <span className="text-[11px] md:text-sm text-gray-600 dark:text-gray-300 font-medium text-center">คุยกับธุรการ</span>
             </Link>
           </div>
@@ -187,8 +188,20 @@ export default function ClientPage({ initialEvents, initialNews }: { initialEven
           <button className="absolute top-6 right-6 md:top-10 md:right-10 w-10 h-10 md:w-14 md:h-14 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors z-[60]" onClick={() => setSelectedImage(null)}>
             <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <div className="relative w-full max-w-5xl h-[85vh] z-50" onClick={(e) => e.stopPropagation()}>
-            <Image src={selectedImage} alt="Full screen view" fill className="rounded-lg object-contain shadow-2xl cursor-default" />
+          <div className="relative w-full max-w-5xl h-[85vh] z-50 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={5}
+              centerOnInit={true}
+              wheel={{ step: 0.1 }}
+            >
+              <TransformComponent wrapperClass="w-full h-full flex items-center justify-center" contentClass="w-full h-full flex items-center justify-center relative">
+                <div className="relative w-[90vw] max-w-5xl h-[85vh]">
+                  <Image src={selectedImage} alt="Full screen view" fill className="rounded-lg object-contain shadow-2xl cursor-grab active:cursor-grabbing" />
+                </div>
+              </TransformComponent>
+            </TransformWrapper>
           </div>
         </div>
       )}

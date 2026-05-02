@@ -60,3 +60,25 @@ export async function replyLineMessage(replyToken: string, messages: any[]) {
     console.error("Fetch Error:", error)
   }
 }
+
+// ฟังก์ชันสำหรับส่ง Push Message
+export async function pushLineMessage(to: string, messages: any[]) {
+  try {
+    const response = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LINE_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ to: to, messages: messages }),
+    });
+    if (!response.ok) {
+      console.error("LINE Push Error:", await response.text());
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("Fetch Error (Push):", error);
+    return false;
+  }
+}

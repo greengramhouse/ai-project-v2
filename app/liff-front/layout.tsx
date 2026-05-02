@@ -2,13 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, Suspense } from "react";
 import liff from "@line/liff";
-
-// ⚠️ ในโปรเจกต์จริง ใช้บรรทัดล่างนี้เพื่อเปิดระบบ Routing ของ Next.js
 import { useRouter, usePathname } from "next/navigation";
-
-// ⚠️ MOCK สำหรับแสดงผลใน Canvas ให้ไม่ Error (ในโปรเจกต์จริงลบ 2 บรรทัดนี้ได้เลย)
-// const useRouter = () => ({ push: (path: string) => console.log("Navigate to:", path) });
-// const usePathname = () => "/liff-front";
 
 export const LiffContext = createContext<{
   profile: any;
@@ -19,7 +13,7 @@ export const LiffContext = createContext<{
   profile: null,
   isReady: false,
   theme: "light",
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 });
 
 export const useLiff = () => useContext(LiffContext);
@@ -118,7 +112,7 @@ function LiffLayoutInner({
       )}
 
       {/* ซ่อนเนื้อหาถ้ายังไม่พร้อม แต่ต้องเรนเดอร์ลงใน DOM เพื่อให้ Next.js หา Suspense เจอ */}
-      <div 
+      <div
         className={`liff-container min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300 ${!isReady ? 'hidden' : ''}`}
       >
         {/* พื้นที่สำหรับแสดงเนื้อหาแต่ละหน้า (Page Content) */}
@@ -134,11 +128,10 @@ function LiffLayoutInner({
               {/* ปุ่มหน้าแรก */}
               <button
                 onClick={() => router.push("/liff-front")}
-                className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${
-                  pathname === "/liff-front" || pathname === "/liff-front/"
+                className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${pathname === "/liff-front" || pathname === "/liff-front/"
                     ? "text-[#06C755]"
                     : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 <svg
                   className="w-6 h-6 md:w-7 md:h-7 group-hover:-translate-y-1 transition-transform"
@@ -155,11 +148,10 @@ function LiffLayoutInner({
               {/* ปุ่มปฏิทิน */}
               <button
                 onClick={() => router.push("/liff-front/events")}
-                className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${
-                  pathname.includes("/events")
+                className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${pathname.includes("/events")
                     ? "text-[#06C755]"
                     : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 <svg
                   className="w-6 h-6 md:w-7 md:h-7 group-hover:-translate-y-1 transition-transform"
@@ -182,12 +174,11 @@ function LiffLayoutInner({
               {/* ปุ่มโปรไฟล์ */}
               <button
                 onClick={() => router.push("/liff-front/profile")}
-                className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${
-                  pathname.includes("/profile") ||
-                  pathname.includes("/register")
+                className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${pathname.includes("/profile") ||
+                    pathname.includes("/register")
                     ? "text-[#06C755]"
                     : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 <svg
                   className="w-6 h-6 md:w-7 md:h-7 group-hover:-translate-y-1 transition-transform"
