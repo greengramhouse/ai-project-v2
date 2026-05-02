@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { useLiff } from "../liff-front/layout";
 import { triggerNewsRevalidation } from "@/lib/news-action";
+import { shareNews } from "@/lib/shareUtils";
 
 export type NewsData = {
   id: string;
@@ -92,9 +93,21 @@ export default function NewsList({ initialNews = [] }: { initialNews: NewsData[]
               className={`absolute top-0 right-0 w-16 md:w-24 h-16 md:h-24 ${colorClass} opacity-10 dark:opacity-20 rounded-bl-full transition-transform duration-300 group-hover:scale-110`}
             />
 
-            {/* Arrow hint */}
-            <div className="absolute top-3 right-3 text-gray-300 group-hover:text-blue-500 transition">
-              →
+            {/* Top Right Actions */}
+            <div className="absolute top-3 right-3 flex items-center gap-1 z-10">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shareNews(news);
+                }}
+                className="w-7 h-7 flex items-center justify-center bg-white/60 dark:bg-gray-800/60 hover:bg-white dark:hover:bg-gray-700 rounded-full text-gray-400 hover:text-blue-500 transition-colors shadow-sm backdrop-blur-sm"
+                title="แชร์ข่าวสาร"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+              </button>
+              <div className="text-gray-300 group-hover:text-blue-500 transition w-6 text-center">
+                →
+              </div>
             </div>
 
             <span
