@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { useLiff } from "../liff-front/layout";
 import { triggerNewsRevalidation } from "@/lib/news-action";
-import { shareNews } from "@/lib/shareUtils";
+import { shareNews } from "../lib/shareUtils";
 
 export type NewsData = {
   id: string;
