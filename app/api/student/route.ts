@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { getStudentData } from "@/lib/getStudentData";
+import { connection } from "next/server";
 
 export async function GET() {
+  await connection();
   try {
     const data = await getStudentData();
     return NextResponse.json(data, { status: 200 });
