@@ -1,55 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, User } from "firebase/auth";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
+import { getDocumentData } from "../../../lib/getDocumentData";
 
 // ⚠️ หมายเหตุ: สำหรับการแสดงผลพรีวิวใน Canvas นี้ ผมได้ทำการจำลอง useLiff ขึ้นมาเพื่อให้โค้ดคอมไพล์ผ่าน
 // ในโปรเจกต์ Next.js จริงของคุณ ให้ลบ mock ด้านล่างนี้ออก แล้วใช้คำสั่ง import ด้านล่างแทนนะครับ
 import { useLiff } from "../layout";
 import Swal from "sweetalert2";
 
-// const useLiff = () => {
-//   const [profile, setProfile] = useState<any>(null);
-//   const [theme, setTheme] = useState('light');
-//   useEffect(() => {
-//     // จำลองข้อมูลให้ตรงกับในฐานข้อมูลที่คุณส่งภาพมา
-//     const mockProfile = { userId: "Uc4fb8efc60cb7d73e5c4e20ac1d2d013", displayName: "วรุณพร" };
-//     setProfile(mockProfile);
-//   }, []);
-//   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
-//   return { profile, theme, toggleTheme, isReady: true };
-// };
-
-// ==========================================
-// 🔧 ตั้งค่า Firebase
-// ==========================================
-let app: any, auth: any, db: any, appId = 'calendar-app';
-
-if (typeof window !== "undefined") {
-  try {
-    const firebaseConfig = typeof (window as any).__firebase_config !== 'undefined'
-      ? JSON.parse((window as any).__firebase_config)
-      : {
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      };
-
-    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    auth = getAuth(app);
-    db = getFirestore(app);
-
-    if (typeof (window as any).__app_id !== 'undefined' && (window as any).__app_id) {
-      appId = (window as any).__app_id;
-    }
-  } catch (error) {
-    console.error("Firebase init error:", error);
-  }
-}
 
 // 👑 กำหนดรายชื่อ LINE User ID สำหรับผู้ดูแลระบบ (Admin)
 const ADMIN_USER_IDS = [
@@ -117,36 +78,13 @@ export default function DocumentPage() {
   const { profile: liffProfile, theme, toggleTheme, isReady, isTeacher } = useLiff();
   const router = useRouter();
 
-  const [fbUser, setFbUser] = useState<User | null>(null);
+
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
 
   const isCurrentUserAdmin = liffProfile && ADMIN_USER_IDS.includes(liffProfile.userId);
 
-  useEffect(() => {
-    if (!auth) return;
 
-    const initAuth = async () => {
-      try {
-        const globalToken = (window as any).__initial_auth_token;
-        if (typeof globalToken !== 'undefined' && globalToken) {
-          await signInWithCustomToken(auth, globalToken);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (error) {
-        console.error("Firebase Authentication Error:", error);
-      }
-    };
-
-    initAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setFbUser(user);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   // 🔒 ระบบป้องกัน: หาก LIFF โหลดเสร็จแล้วแต่ไม่มี Profile แปลว่ายังไม่ได้ Login ให้เด้งกลับไปหน้าแรก
   // หรือถ้าไม่ใช่ครู ก็ไม่ให้เข้าหน้านี้
@@ -167,27 +105,13 @@ export default function DocumentPage() {
   }, [isReady, liffProfile, isTeacher, router]);
 
   const fetchDocuments = async (currentUserId: string, viewAll: boolean): Promise<DocumentData[]> => {
-    if (!db) return [];
-
-    const docsRef = collection(db, 'artifacts', appId, 'public', 'data', 'documents');
-    const snapshot = await getDocs(docsRef);
-
-    let fetchedDocs = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as DocumentData[];
-
-    if (!viewAll) {
-      fetchedDocs = fetchedDocs.filter(doc =>
-        doc.docLineUserId === currentUserId || doc.createdBy === fbUser?.uid
-      );
+    try {
+      const data = await getDocumentData(currentUserId, viewAll);
+      return data as DocumentData[];
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      return [];
     }
-
-    fetchedDocs.sort((a, b) => {
-      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-    });
-
-    return fetchedDocs;
   };
 
   const {
@@ -195,7 +119,7 @@ export default function DocumentPage() {
     error,
     isLoading: docsLoading
   } = useSWR<DocumentData[]>(
-    (fbUser && liffProfile) ? ['documents', liffProfile.userId, isAdminMode] : null,
+    liffProfile ? ['documents', liffProfile.userId, isAdminMode] : null,
     ([, userId, adminMode]) => fetchDocuments(userId as string, adminMode as boolean),
     {
       revalidateOnFocus: false,

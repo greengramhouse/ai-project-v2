@@ -88,3 +88,36 @@ model OcrSession {
   @@index([lineUserId, status]) // ทำ Index เพื่อให้ค้นหาสถานะที่กำลังรอรูปได้รวดเร็ว
   @@map("ocr_sessions")
 }
+
+
+// เปลี่ยนชื่อ Enum ให้เจาะจงว่าเป็นหมวดหมู่ของงานทะเบียนเอกสาร
+enum RegistryType {
+  OUTGOING_LETTER // หนังสือส่งออก
+  ORDER           // คำสั่ง
+  ANNOUNCEMENT    // ประกาศ
+  INTERNAL_MEMO   // บันทึกข้อความภายใน
+}
+
+// เปลี่ยนชื่อ Model จาก Document เป็น DocumentRegistry
+model DocumentRegistry {
+  id                 Int          @id @default(autoincrement())
+  
+  type               RegistryType
+  
+  // --- ส่วนของการจัดการเลขที่เอกสาร ---
+  runningNumber      Int          
+  year               Int          
+  fullDocumentNumber String       
+  
+  // --- รายละเอียดเนื้อหา ---
+  title              String       
+  recipient          String?      
+  url                String?      
+  note               String?      
+  
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([type, year])
+  @@unique([type, year, runningNumber]) 
+}
