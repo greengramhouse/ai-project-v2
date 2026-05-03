@@ -84,7 +84,7 @@ export default function NewsList({ initialNews = [] }: { initialNews: NewsData[]
         return (
           <div
             key={news.id}
-            onClick={() => router.push(`/liff-front/newlist/${news.id}`)}
+            onClick={() => router.push(`/liff-front/newlistv2/${news.id}`)}
             className="min-w-60 md:min-w-[320px] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl p-5 shadow-sm snap-start relative overflow-hidden 
             hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer shrink-0 group block"
           >
