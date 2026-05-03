@@ -1,8 +1,8 @@
 import { firebaseAdmin } from "./firebase-admin";
-import { unstable_noStore as noStore } from "next/cache";
+import { connection } from "next/server";
 
 export async function getStudentData() {
-    noStore();
+    await connection();
 
     try {
         const snapshot = await firebaseAdmin.collection('students').get();
