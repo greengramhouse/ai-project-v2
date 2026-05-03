@@ -1,25 +1,19 @@
 import { cacheLife, cacheTag } from 'next/cache';
-import { getFirestore } from 'firebase-admin/firestore';
-import { customInitApp } from './firebase-admin-config';
+import { firebaseAdmin } from './firebase-admin';
 
 export async function getPublicNews() {
-  'use cache'; // เปิดใช้งาน Cache Component
+  'use cache';
   cacheLife('hours');
-  cacheTag('news'); // ติด Tag ไว้เผื่อแอดมินสั่งล้างแคชตอนเพิ่มข่าวใหม่
+  cacheTag('news');
 
   try {
-    customInitApp();
-    const db = getFirestore();
+    const snapshot = await firebaseAdmin.collection('news').get();
 
-    // ดึงข้อมูลจาก collection "news"
-    const snapshot = await db.collection('news').get();
-
-    let fetchedNews = snapshot.docs.map(doc => ({
+    const fetchedNews = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
-    // เรียงลำดับข่าวล่าสุดขึ้นก่อน
     fetchedNews.sort((a: any, b: any) => {
       const dateA = new Date(a.createdAt || 0).getTime();
       const dateB = new Date(b.createdAt || 0).getTime();
