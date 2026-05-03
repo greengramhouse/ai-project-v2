@@ -101,6 +101,18 @@ useEffect(() => {
                 โปรไฟล์
               </Link>
 
+              {/* เมนู ลงทะเบียน */}
+              <Link
+                href="/liff-front/register"
+                className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <svg className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                ลงทะเบียน
+              </Link>
+
               {/* เส้นคั่น */}
               <div className="h-px bg-gray-100 dark:bg-gray-700 my-1"></div>
 

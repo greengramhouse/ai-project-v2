@@ -62,6 +62,9 @@ model UserProfile {
   role        String   @default("user") // "user", "teacher", "admin"
   // Relations: เชื่อมไปยังประวัติแชทและเซสชัน OCR
   ocrSessions OcrSession[]
+
+  // เพิ่มบรรทัดนี้ เพื่อบอกว่า User 1 คน ออกเอกสารได้หลายใบ (One-to-Many)
+  documents   DocumentRegistry[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -114,7 +117,18 @@ model DocumentRegistry {
   recipient          String?      
   url                String?      
   note               String?      
+  issuedDate         DateTime     @default(now()) 
+  isCircular         Boolean      @default(false)
+
+// --- ส่วนของการทำ Relation ---
+  ownerId            String?      // ต้องเป็น Type เดียวกับฟิลด์ id ใน UserProfile (เช่น ถ้านู่นเป็น Int ตรงนี้ก็ต้อง Int?)
   
+  // สร้าง Relation ผูก ownerId เข้ากับ id ของ UserProfile
+  owner              UserProfile? @relation(fields: [ownerId], references: [id]) 
+  
+  // (แนะนำให้เก็บไว้) ชื่อเจ้าของเรื่อง ณ วันที่ออกเอกสาร เผื่ออนาคตเขาเปลี่ยนชื่อในระบบ
+  ownerName   String   @default("ไม่ระบุชื่อ")
+
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
