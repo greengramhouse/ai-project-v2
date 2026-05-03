@@ -8,8 +8,6 @@ import { db, auth } from "@/lib/firebase";
 import { signInAnonymously } from "firebase/auth";
 import { useLiff } from "../../layout";
 
-
-
 // โครงสร้างข้อมูลข่าว
 type NewsData = {
   id: string;
@@ -220,6 +218,15 @@ function NewsDetailContent() {
   );
 }
 
+
 export default function NewsDetailPage() {
-  return <NewsDetailContent />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center transition-colors">
+        <div className="w-12 h-12 border-4 border-[#06C755]/20 border-t-[#06C755] rounded-full animate-spin mb-4"></div>
+      </div>
+    }>
+      <NewsDetailContent />
+    </Suspense>
+  );
 }
