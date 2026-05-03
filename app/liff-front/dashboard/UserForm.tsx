@@ -97,7 +97,7 @@ export default function UserForm({ mode, item, onClose, onSuccess }: Props) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative z-10 w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl flex flex-col overflow-hidden" style={{ maxHeight: '90dvh' }}>
+      <div className="relative z-10 w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl flex flex-col overflow-hidden" style={{ maxHeight: 'calc(92dvh - 64px)', marginBottom: '64px' }}>
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-gray-700" />
