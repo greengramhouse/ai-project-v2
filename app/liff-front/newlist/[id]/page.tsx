@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { useParams, useRouter } from "next/navigation";
-import { db } from "@/lib/firebase"; 
+import { db, auth } from "@/lib/firebase"; 
+import { signInAnonymously } from "firebase/auth";
 import { useLiff } from "../../layout";
 
 
@@ -21,8 +22,7 @@ type NewsData = {
   createdAt?: string;
 };
 
-function NewsDetailContent() {
-  const params = useParams();
+function NewsDetailContent({ newsId }: { newsId: string }) {
   const router = useRouter();
   const { theme, toggleTheme } = useLiff();
   
@@ -31,29 +31,53 @@ function NewsDetailContent() {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchNewsDetail = async () => {
-      if (!params.id) return;
+      if (!newsId) {
+        setIsError(true);
+        setIsLoading(false);
+        return;
+      }
       
-      // 🚀 โลจิกดึงข้อมูลจริงจาก Firebase
+      // โลจิกดึงข้อมูลจริงจาก Firebase
       try {
-        const docRef = doc(db, "news", params.id as string);
-        const docSnap = await getDoc(docRef);
+        // Ensure anonymous auth for new users to prevent Firestore hanging on iOS
+        if (auth && !auth.currentUser) {
+          try {
+            await signInAnonymously(auth);
+          } catch (e) {
+            console.warn("Anonymous auth failed, proceeding without auth", e);
+          }
+        }
 
-        if (docSnap.exists()) {
+        const docRef = doc(db, "news", newsId);
+        // Add timeout to prevent infinite spinning if network hangs
+        const fetchPromise = getDoc(docRef);
+        const timeoutPromise = new Promise<null>((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout fetching news")), 10000)
+        );
+        
+        const docSnap = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+        if (isMounted && docSnap && docSnap.exists()) {
           setNews({ id: docSnap.id, ...docSnap.data() } as NewsData);
-        } else {
+        } else if (isMounted) {
           setIsError(true);
         }
       } catch (error) {
         console.error("Error fetching news detail:", error);
-        setIsError(true);
+        if (isMounted) setIsError(true);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     fetchNewsDetail();
-  }, [params.id]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [newsId]);
 
   const handleGoBack = () => {
     router.back();
@@ -194,7 +218,11 @@ function NewsDetailContent() {
   );
 }
 
-export default function NewsDetailPage() {
+import { use } from "react";
+
+export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center transition-colors">
@@ -202,7 +230,7 @@ export default function NewsDetailPage() {
         <p className="text-gray-500 dark:text-gray-400 font-medium">กำลังโหลดเนื้อหาข่าว...</p>
       </div>
     }>
-      <NewsDetailContent />
+      <NewsDetailContent newsId={resolvedParams.id} />
     </Suspense>
   );
 }
