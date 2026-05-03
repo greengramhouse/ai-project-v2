@@ -22,7 +22,9 @@ type NewsData = {
   createdAt?: string;
 };
 
-function NewsDetailContent({ newsId }: { newsId: string }) {
+function NewsDetailContent() {
+  const params = useParams();
+  const newsId = params?.id as string;
   const router = useRouter();
   const { theme, toggleTheme } = useLiff();
   
@@ -218,19 +220,6 @@ function NewsDetailContent({ newsId }: { newsId: string }) {
   );
 }
 
-import { use } from "react";
-
-export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center transition-colors">
-        <div className="w-12 h-12 border-4 border-[#06C755]/20 border-t-[#06C755] rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-500 dark:text-gray-400 font-medium">กำลังโหลดเนื้อหาข่าว...</p>
-      </div>
-    }>
-      <NewsDetailContent newsId={resolvedParams.id} />
-    </Suspense>
-  );
+export default function NewsDetailPage() {
+  return <NewsDetailContent />;
 }
