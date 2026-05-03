@@ -1,11 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { db, auth } from "@/lib/firebase"; 
-import { signInAnonymously } from "firebase/auth";
 import { useLiff } from "../../layout";
 
 
@@ -41,28 +37,18 @@ function NewsDetailContent() {
         return;
       }
       
-      // โลจิกดึงข้อมูลจริงจาก Firebase
+      // โลจิกดึงข้อมูลจาก API Route ที่เขียนขึ้นมาใหม่
       try {
-        // Ensure anonymous auth for new users to prevent Firestore hanging on iOS
-        if (auth && !auth.currentUser) {
-          try {
-            await signInAnonymously(auth);
-          } catch (e) {
-            console.warn("Anonymous auth failed, proceeding without auth", e);
-          }
-        }
-
-        const docRef = doc(db, "news", newsId);
-        // Add timeout to prevent infinite spinning if network hangs
-        const fetchPromise = getDoc(docRef);
-        const timeoutPromise = new Promise<null>((_, reject) => 
+        const fetchPromise = fetch(`/api/news/${newsId}`);
+        const timeoutPromise = new Promise<Response>((_, reject) => 
           setTimeout(() => reject(new Error("Timeout fetching news")), 10000)
         );
         
-        const docSnap = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        const res = await Promise.race([fetchPromise, timeoutPromise]);
 
-        if (isMounted && docSnap && docSnap.exists()) {
-          setNews({ id: docSnap.id, ...docSnap.data() } as NewsData);
+        if (isMounted && res.ok) {
+          const data = await res.json();
+          setNews(data as NewsData);
         } else if (isMounted) {
           setIsError(true);
         }
