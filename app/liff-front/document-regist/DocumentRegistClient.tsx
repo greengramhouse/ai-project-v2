@@ -40,7 +40,7 @@ export default function DocumentRegistClient({ initialData }: Props) {
         Swal.fire({
           icon: "warning",
           title: "ขออภัยค่ะ",
-          text: "หน้านี้สงวนสิทธิ์การเข้าใช้งานเฉพาะบุคลากรครูเท่านั้น",
+          html: "หน้านี้สงวนสิทธิ์การเข้าใช้งาน<br/>เฉพาะบุคลากรครูเท่านั้น<br/>หากต้องการใช้งานกรุณาติดต่อผู้ดูแลระบบ",
           confirmButtonColor: "#06C755",
         });
         router.push("/liff-front");
@@ -343,7 +343,7 @@ export default function DocumentRegistClient({ initialData }: Props) {
                           ดูเอกสาร
                         </a>
                       )}
-                      
+
                       {isAdmin && (
                         <>
                           <button

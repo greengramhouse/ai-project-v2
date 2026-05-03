@@ -8,12 +8,12 @@ import liff from "@line/liff";
 
 export default function Header() {
   // 1. สร้าง State และ Ref สำหรับควบคุม Dropdown
-  const { profile, isReady, theme, toggleTheme } = useLiff();
+  const { profile, isReady, theme, toggleTheme, isAdmin } = useLiff();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 2. ปิด Dropdown เมื่อคลิกบริเวณอื่นของหน้าจอ
-useEffect(() => {
+  useEffect(() => {
     // 1. กำหนด Type ให้ event เป็น MouseEvent
     const handleClickOutside = (event: MouseEvent) => {
       // 2. ระบุ event.target as Node เพื่อให้ .contains() ยอมรับค่า
@@ -53,7 +53,7 @@ useEffect(() => {
 
       {/* กลุ่มเมนูด้านขวา (เปลี่ยนธีม + โปรไฟล์และ Dropdown) */}
       <div className="flex items-center gap-3 md:gap-4">
-        
+
         {/* ☀️/🌙 ปุ่มสลับธีม */}
         <button
           onClick={toggleTheme}
@@ -88,7 +88,7 @@ useEffect(() => {
           {/* 📋 เมนู Dropdown */}
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 border border-gray-100 dark:border-gray-700 z-50 animate-in fade-in slide-in-from-top-2">
-              
+
               {/* เมนู Profile */}
               <Link
                 href="/liff-front/profile"
@@ -112,6 +112,21 @@ useEffect(() => {
                 </svg>
                 ลงทะเบียน
               </Link>
+              {/* เมนู admin */}
+              {
+                isAdmin && (
+                  <Link
+                    href="/liff-front/dashboard"
+                    className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    เฉพาะ Admin
+                  </Link>
+                )
+              }
 
               {/* เส้นคั่น */}
               <div className="h-px bg-gray-100 dark:bg-gray-700 my-1"></div>
