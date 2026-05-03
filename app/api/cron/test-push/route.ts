@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { pushLineMessage } from "@/lib/line-webhook/line";
 
-export const dynamic = "force-dynamic"; // 🔥 แก้ iOS / prerender / headers ใช้งานไม่ได้
+export const fetchCache = "force-no-store";
 
 export async function GET(req: Request) {
   try {
