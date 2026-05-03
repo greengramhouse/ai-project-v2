@@ -1,22 +1,34 @@
-import { firebaseAdmin } from "@/lib/firebase-admin";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { firebaseAdmin } from "@/lib/firebase-admin"; // ของคุณ
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const doc = await firebaseAdmin.collection("news").doc(params.id).get();
+    // ✅ ต้อง await params ก่อน
+    const { id } = await context.params;
 
-    if (!doc.exists) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!id) {
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    }
+
+    const docRef = firebaseAdmin.collection("news").doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      id: doc.id,
-      ...doc.data(),
+      id: docSnap.id,
+      ...docSnap.data(),
     });
-  } catch (err) {
-    return NextResponse.json({ error: "server error" }, { status: 500 });
+  } catch (error) {
+    console.error("API error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
