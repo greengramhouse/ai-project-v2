@@ -5,20 +5,14 @@ import liff from "@line/liff";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useLiff } from "./layout";
+import { galleryGroups } from "./gallery/data";
 
 import NewsList from "../components/NewList";
 import Header from "../components/Header";
 import EventListCach from "../components/EventListCach";
 import Swal from "sweetalert2";
 
-const mockGallery = [
-  { id: 1, url: "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=800&auto=format&fit=crop", title: "กีฬาสี 68" },
-  { id: 2, url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=800&auto=format&fit=crop", title: "เข้าค่าย" },
-  { id: 3, url: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop", title: "ประชุม" },
-  { id: 4, url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800&auto=format&fit=crop", title: "รับรางวัล" },
-];
 
 export default function ClientPage({
   initialEvents,
@@ -29,7 +23,6 @@ export default function ClientPage({
 }) {
   const { profile, isReady } = useLiff();
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const router = useRouter();
 
   // ✅ ใช้ LIFF เช็ค admin อย่างเดียว
@@ -43,29 +36,6 @@ export default function ClientPage({
 
   const handleLogin = () => {
     liff.login();
-  };
-
-  const handleShare = async () => {
-    if (!selectedImage) return;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "ภาพกิจกรรม",
-          text: "ดูภาพกิจกรรมจากไทยงาม",
-          url: selectedImage,
-        });
-      } else {
-        await navigator.clipboard.writeText(selectedImage);
-        Swal.fire({
-          icon: "success",
-          title: "สำเร็จ",
-          text: "คัดลอกลิงก์รูปภาพแล้ว",
-          confirmButtonColor: "#06C755",
-        });
-      }
-    } catch (error) {
-      console.error("Error sharing:", error);
-    }
   };
 
   // 🔐 ยังไม่ login LINE
@@ -154,26 +124,34 @@ export default function ClientPage({
         {/* GALLERY */}
         <section>
           <h2 className="font-bold text-gray-800 dark:text-white mb-4">ภาพกิจกรรม 📸</h2>
-          <div className="flex gap-4 overflow-x-auto">
-            {mockGallery.map((img) => (
-              <div key={img.id} onClick={() => setSelectedImage(img.url)}>
-                <Image src={img.url} alt={img.title} width={200} height={120} />
-              </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
+            {galleryGroups.map((group) => (
+              <Link
+                key={group.id}
+                href={`/liff-front/gallery/${group.id}`}
+                className="shrink-0 w-44 group"
+              >
+                <div className="relative w-44 h-28 rounded-2xl overflow-hidden shadow-md">
+                  <Image
+                    src={group.coverUrl}
+                    alt={group.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="176px"
+                  />
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {group.images.length} ภาพ
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-gray-700 dark:text-gray-200 mt-2 truncate">{group.title}</p>
+                <p className="text-[10px] text-gray-400">{group.date}</p>
+              </Link>
             ))}
           </div>
         </section>
       </main>
-
-      {/* VIEW IMAGE */}
-      {selectedImage && (
-        <div onClick={() => setSelectedImage(null)} className="fixed inset-0 bg-black/90 flex items-center justify-center">
-          <TransformWrapper>
-            <TransformComponent>
-              <Image src={selectedImage} alt="preview" width={800} height={600} />
-            </TransformComponent>
-          </TransformWrapper>
-        </div>
-      )}
     </div>
   );
 }
