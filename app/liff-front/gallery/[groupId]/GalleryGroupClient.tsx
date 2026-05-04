@@ -82,7 +82,7 @@ export default function GalleryGroupClient({ group }: Props) {
       {/* Full Screen Viewer with Zoom */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex flex-col h-[100dvh]"
+          className="fixed inset-0 z-[70] bg-black/95 flex flex-col h-[100dvh]"
           onClick={() => setSelectedIndex(null)}
         >
           {/* Viewer Top Bar */}
