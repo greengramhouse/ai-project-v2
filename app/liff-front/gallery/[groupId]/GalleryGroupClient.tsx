@@ -1,19 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { AlbumData } from "@/lib/getImageCloudinary";
 import ShareButton from "../ShareButton";
-
+import { useLiff } from "../../layout";
 
 type Props = {
   group: AlbumData;
 };
 
-// Component สำหรับแสดงรูปภาพแต่ละใบพร้อม Skeleton loading
-function GalleryImageItem({ img, index, onClick }: { img: any, index: number, onClick: () => void }) {
+// Component สำหรับแสดงรูปภาพแต่ละใบพร้อม Skeleton loading และระบบ Like
+function GalleryImageItem({ 
+  img, 
+  index, 
+  onClick, 
+  likeCount, 
+  isLiked, 
+  onLike 
+}: { 
+  img: any, 
+  index: number, 
+  onClick: () => void,
+  likeCount: number,
+  isLiked: boolean,
+  onLike: (e: React.MouseEvent) => void
+}) {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
@@ -31,8 +45,21 @@ function GalleryImageItem({ img, index, onClick }: { img: any, index: number, on
           isLoading ? "opacity-0 scale-105" : "opacity-100 scale-100"
         }`}
         sizes="(max-width: 768px) 33vw, 25vw"
-        onLoadingComplete={() => setIsLoading(false)}
+        onLoad={() => setIsLoading(false)}
       />
+
+      {/* Like Button - แสดงเมื่อโหลดรูปเสร็จ */}
+      {!isLoading && (
+        <button
+          onClick={onLike}
+          className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/20 transition-transform active:scale-90"
+        >
+          <span className={`${isLiked ? "text-red-500" : "text-white"} text-sm transition-colors`}>
+            {isLiked ? "❤️" : "🤍"}
+          </span>
+          <span className="text-[10px] text-white font-bold">{likeCount > 0 ? likeCount : ""}</span>
+        </button>
+      )}
 
       {/* Hover Overlay - แสดงเฉพาะเมื่อโหลดเสร็จแล้ว */}
       {!isLoading && (
@@ -49,8 +76,71 @@ function GalleryImageItem({ img, index, onClick }: { img: any, index: number, on
 }
 
 export default function GalleryGroupClient({ group }: Props) {
+  const { profile } = useLiff();
   const router = useRouter();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  // States สำหรับระบบ Like
+  const [userLikedIds, setUserLikedIds] = useState<string[]>([]);
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+
+  // ดึงข้อมูล Like เมื่อเข้าหน้า
+  useEffect(() => {
+    const fetchLikes = async () => {
+      try {
+        const imageIds = group.images.map(img => img.id).join(",");
+        const url = `/api/gallery/like?imageIds=${imageIds}${profile?.userId ? `&userId=${profile.userId}` : ""}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.userLikedIds) setUserLikedIds(data.userLikedIds);
+        if (data.likeCounts) setLikeCounts(data.likeCounts);
+      } catch (err) {
+        console.error("Fetch likes failed:", err);
+      }
+    };
+
+    if (group.images.length > 0) {
+      fetchLikes();
+    }
+  }, [group.images, profile?.userId]);
+
+  const handleLike = async (e: React.MouseEvent, imageId: string) => {
+    e.stopPropagation();
+    if (!profile?.userId) {
+      alert("กรุณาเข้าสู่ระบบผ่าน LINE เพื่อกด Like");
+      return;
+    }
+
+    const safeId = imageId.replace(/\//g, '_');
+    const isCurrentlyLiked = userLikedIds.includes(imageId);
+
+    // Optimistic Update: อัปเดต UI ทันที
+    setUserLikedIds(prev => 
+      isCurrentlyLiked ? prev.filter(id => id !== imageId) : [...prev, imageId]
+    );
+    setLikeCounts(prev => ({
+      ...prev,
+      [safeId]: (prev[safeId] || 0) + (isCurrentlyLiked ? -1 : 1)
+    }));
+
+    try {
+      const res = await fetch("/api/gallery/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: profile.userId, imageId }),
+      });
+      if (!res.ok) throw new Error("Like failed");
+    } catch (err) {
+      // Revert ถ้า API พัง
+      setUserLikedIds(prev => 
+        isCurrentlyLiked ? [...prev, imageId] : prev.filter(id => id !== imageId)
+      );
+      setLikeCounts(prev => ({
+        ...prev,
+        [safeId]: (prev[safeId] || 0) + (isCurrentlyLiked ? 1 : -1)
+      }));
+    }
+  };
 
   const selectedImage = selectedIndex !== null ? group.images[selectedIndex] : null;
 
@@ -95,6 +185,9 @@ export default function GalleryGroupClient({ group }: Props) {
               img={img}
               index={index}
               onClick={() => setSelectedIndex(index)}
+              likeCount={likeCounts[img.id.replace(/\//g, '_')] || 0}
+              isLiked={userLikedIds.includes(img.id)}
+              onLike={(e) => handleLike(e, img.id)}
             />
           ))}
         </div>
@@ -108,9 +201,19 @@ export default function GalleryGroupClient({ group }: Props) {
         >
           {/* Viewer Top Bar */}
           <div className="shrink-0 flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
-            <span className="text-sm text-gray-300 font-medium">
-              {selectedIndex !== null ? selectedIndex + 1 : 1} / {group.images.length}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-300 font-medium">
+                {selectedIndex !== null ? selectedIndex + 1 : 1} / {group.images.length}
+              </span>
+              {/* Like in viewer */}
+              <button 
+                onClick={(e) => handleLike(e, selectedImage.id)}
+                className="flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full text-xs"
+              >
+                <span>{userLikedIds.includes(selectedImage.id) ? "❤️" : "🤍"}</span>
+                <span>{likeCounts[selectedImage.id.replace(/\//g, '_')] || 0}</span>
+              </button>
+            </div>
             <button
               onClick={() => setSelectedIndex(null)}
               className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
