@@ -1,15 +1,21 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { fetchAllAlbumsInMainFolder } from "../lib/getImageCloudinary";
 
 async function test() {
+  console.log("Testing Cloudinary connection...");
+  console.log("Cloud Name:", process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
+  
   try {
     const albums = await fetchAllAlbumsInMainFolder('samples');
-    console.log("Albums count:", albums.length);
+    console.log("SUCCESS! Found", albums.length, "albums.");
     if (albums.length > 0) {
-      console.log("First album cover:", albums[0].coverUrl);
-      console.log("First album first image ID:", albums[0].images[0]?.id);
+      console.log("Album 1:", albums[0].title);
+      console.log("Cover URL:", albums[0].coverUrl);
     }
-  } catch (e) {
-    console.error("Test failed:", e);
+  } catch (e: any) {
+    console.error("STILL FAILED:", e.message);
   }
 }
 

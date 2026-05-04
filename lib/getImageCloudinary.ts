@@ -36,8 +36,8 @@ interface CloudinaryResource {
 
 export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<AlbumData[]> {
   "use cache";
-  cacheLife('hours');
-  cacheTag('gallery');  
+  cacheLife('hours'); // เก็บ Cache ไว้เป็นชั่วโมงเพื่อประหยัด API Limit
+  cacheTag('gallery_v2');  
   
   try {
     const getSubFolders = (): Promise<any> => {
@@ -55,31 +55,36 @@ export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<Al
     if (!folders || folders.length === 0) return [];
 
     const albumsPromises = folders.map(async (folder: CloudinaryFolder) => {
-      const searchResult = await cloudinary.search
-        .expression(`folder:${folder.path}`)
-        .sort_by('public_id', 'desc')
-        .max_results(20)
-        .execute();
+      try {
+        const searchResult = await cloudinary.search
+          .expression(`folder:${folder.path}`)
+          .sort_by('public_id', 'desc')
+          .max_results(20)
+          .execute();
 
-      const resources: CloudinaryResource[] = searchResult.resources;
+        const resources: CloudinaryResource[] = searchResult.resources;
 
-      if (!resources || resources.length === 0) return null;
+        if (!resources || resources.length === 0) return null;
 
-      const uploadDate = new Date(resources[0].created_at).toLocaleDateString('th-TH', {
-        year: 'numeric', month: 'short', day: 'numeric'
-      });
+        const uploadDate = new Date(resources[0].created_at).toLocaleDateString('th-TH', {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
 
-      return {
-        id: folder.name, 
-        title: folder.name.replace(/-/g, ' '), 
-        date: uploadDate, 
-        coverUrl: resources[0].secure_url, 
-        images: resources.map((img: CloudinaryResource, index: number) => ({
-          id: index + 1,
-          url: img.secure_url,
-          caption: img.filename.replace(/-/g, ' ') 
-        }))
-      } as AlbumData;
+        return {
+          id: folder.name, 
+          title: folder.name.replace(/-/g, ' '), 
+          date: uploadDate, 
+          coverUrl: resources[0].secure_url, 
+          images: resources.map((img: CloudinaryResource, index: number) => ({
+            id: index + 1,
+            url: img.secure_url,
+            caption: img.filename.replace(/-/g, ' ') 
+          }))
+        } as AlbumData;
+      } catch (err) {
+        console.error("Cloudinary Search Error:", err);
+        return null;
+      }
     });
 
     const albums = await Promise.all(albumsPromises);
@@ -130,56 +135,3 @@ export async function fetchSingleAlbum(mainFolder: string, folderName: string): 
   }
 }
 
-
-export async function fetchAllAlbumsInMainFolderTest(mainFolder: string): Promise<AlbumData[]> {
-  try {
-    const getSubFolders = (): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        cloudinary.api.sub_folders(mainFolder, (error: any, result: any) => {
-           if (error) reject(error);
-           else resolve(result);
-        });
-      });
-    };
-
-    const subfoldersResult = await getSubFolders();
-    const folders: CloudinaryFolder[] = subfoldersResult.folders; 
-
-    if (!folders || folders.length === 0) return [];
-
-    const albumsPromises = folders.map(async (folder: CloudinaryFolder) => {
-      const searchResult = await cloudinary.search
-        .expression(`folder:${folder.path}`)
-        .sort_by('public_id', 'desc')
-        .max_results(20)
-        .execute();
-
-      const resources: CloudinaryResource[] = searchResult.resources;
-
-      if (!resources || resources.length === 0) return null;
-
-      const uploadDate = new Date(resources[0].created_at).toLocaleDateString('th-TH', {
-        year: 'numeric', month: 'short', day: 'numeric'
-      });
-
-      return {
-        id: folder.name, 
-        title: folder.name.replace(/-/g, ' '), 
-        date: uploadDate, 
-        coverUrl: resources[0].secure_url, 
-        images: resources.map((img: CloudinaryResource, index: number) => ({
-          id: index + 1,
-          url: img.secure_url,
-          caption: img.filename.replace(/-/g, ' ') 
-        }))
-      } as AlbumData;
-    });
-
-    const albums = await Promise.all(albumsPromises);
-    return albums.filter((album): album is AlbumData => album !== null);
-
-  } catch (error) {
-    console.error(`Error fetching albums from ${mainFolder}:`, error);
-    return [];
-  }
-}

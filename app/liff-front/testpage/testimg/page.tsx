@@ -1,8 +1,8 @@
-import { fetchAllAlbumsInMainFolderTest } from "@/lib/getImageCloudinary";
+import { fetchAllAlbumsInMainFolder } from "@/lib/getImageCloudinary";
 
 export default async function GalleryPage() {
   // เรียกใช้ฟังก์ชันใหม่ และใส่ชื่อโฟลเดอร์หลักของคุณ
-  const allAlbums = await fetchAllAlbumsInMainFolderTest('samples'); 
+  const allAlbums = await fetchAllAlbumsInMainFolder('samples'); 
   
   return (
     <div className="p-8">
