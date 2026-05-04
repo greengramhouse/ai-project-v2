@@ -57,6 +57,9 @@ function LiffLayoutInner({
     }
 
     const initLiff = async () => {
+      // ถ้าพร้อมแล้วและมีโปรไฟล์แล้ว ไม่ต้องโหลดซ้ำ (ป้องกันการโหลดซ้ำทุกครั้งที่เปลี่ยนหน้า)
+      if (isReady && profile) return;
+
       try {
         const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
         if (!liffId) console.warn("ยังไม่ได้ตั้งค่า NEXT_PUBLIC_LIFF_ID");
@@ -66,12 +69,12 @@ function LiffLayoutInner({
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
 
-          // ดึงสิทธิ์ (Role) และการยอมรับ Consent จากฐานข้อมูล
+          // ดึงสิทธิ์ (Role) และการยอมรับ Consent จากฐานข้อมูล (ใช้ no-store ป้องกัน Loop)
           try {
-            const res = await fetch(`/api/user/${userProfile.userId}`);
+            const res = await fetch(`/api/user/${userProfile.userId}`, { cache: "no-store" });
             if (res.ok) {
               const data = await res.json();
-              const dbRole = data.role; // "admin", "teacher", "user"
+              const dbRole = data.role;
               
               const isDbAdmin = dbRole === "admin" || ADMIN_USER_IDS.includes(userProfile.userId);
               const isDbTeacher = dbRole === "teacher" || isDbAdmin;
@@ -84,20 +87,10 @@ function LiffLayoutInner({
               if (!data.acceptedConsent && pathname !== "/liff-front/consent") {
                 router.push("/liff-front/consent");
               }
-            } else {
-              setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
-              setIsTeacher(ADMIN_USER_IDS.includes(userProfile.userId));
             }
           } catch (e) {
             console.error("Error fetching user data:", e);
-            setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
-            setIsTeacher(ADMIN_USER_IDS.includes(userProfile.userId));
           }
-
-        } else {
-          setProfile(null);
-          setIsAdmin(false);
-          setIsTeacher(false);
         }
         setIsReady(true);
       } catch (error: any) {
@@ -106,14 +99,12 @@ function LiffLayoutInner({
           userId: "U_MOCK_USER_ID",
           displayName: "ผู้ใช้งานระบบ (Demo)",
         });
-        setIsAdmin(false);
-        setIsTeacher(false);
         setIsReady(true);
       }
     };
 
     initLiff();
-  }, [pathname, router]);
+  }, [pathname, router, isReady, profile]);
 
   const toggleTheme = () => {
     if (theme === "light") {
