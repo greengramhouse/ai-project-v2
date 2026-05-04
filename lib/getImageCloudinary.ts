@@ -9,7 +9,7 @@ cloudinary.config({
 });
 
 export interface AlbumImage {
-  id: number;
+  id: string;
   url: string;
   caption: string;
 }
@@ -84,7 +84,7 @@ export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<Al
         date: uploadDate, 
         coverUrl: resources[0].secure_url, 
         images: resources.map((img: CloudinaryResource, index: number) => ({
-          id: index + 1,
+          id: (img as any).public_id || `img_${index}`,
           url: img.secure_url,
           caption: img.filename.replace(/-/g, ' ') 
         }))
@@ -127,7 +127,7 @@ export async function fetchSingleAlbum(mainFolder: string, folderName: string): 
       date: uploadDate,
       coverUrl: resources[0].secure_url,
       images: resources.map((img: CloudinaryResource, index: number) => ({
-        id: index + 1,
+        id: (img as any).public_id || `img_${index}`,
         url: img.secure_url,
         caption: img.filename.replace(/-/g, ' ')
       }))
@@ -186,7 +186,7 @@ export async function fetchAllAlbumsInMainFolderTest(mainFolder: string): Promis
         date: uploadDate, 
         coverUrl: resources[0].secure_url, 
         images: resources.map((img: CloudinaryResource, index: number) => ({
-          id: index + 1,
+          id: (img as any).public_id || `img_${index}`,
           url: img.secure_url,
           caption: img.filename.replace(/-/g, ' ') 
         }))
