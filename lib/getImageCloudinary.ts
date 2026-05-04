@@ -21,49 +21,35 @@ export interface AlbumData {
   images: AlbumImage[];
 }
 
-interface CloudinaryFolder {
-  name: string;
-  path: string;
-}
-
-interface CloudinaryResource {
-  secure_url: string;
-  created_at: string;
-  filename: string;
-  public_id: string;
-  [key: string]: unknown;
-}
-
 export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<AlbumData[]> {
-  // ปิด Cache ชั่วคราวเพื่อแก้ปัญหาภาพไม่แสดง
   try {
-    const getSubFolders = (): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        cloudinary.api.sub_folders(mainFolder, (error: any, result: any) => {
-           if (error) reject(error);
-           else resolve(result);
-        });
+    // 1. Get subfolders using the API (more reliable for structure)
+    const subfoldersResult = await new Promise<any>((resolve, reject) => {
+      cloudinary.api.sub_folders(mainFolder, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
       });
-    };
+    });
 
-    const subfoldersResult = await getSubFolders();
-    const folders: CloudinaryFolder[] = subfoldersResult.folders; 
+    const folders = subfoldersResult.folders;
+    if (!folders || folders.length === 0) return [];
 
-    if (!folders || folders.length === 0) {
-      console.warn(`No subfolders found in ${mainFolder}`);
-      return [];
-    }
-
-    const albumsPromises = folders.map(async (folder: CloudinaryFolder) => {
+    const albumsPromises = folders.map(async (folder: any) => {
       try {
-        const searchResult = await cloudinary.search
-          .expression(`folder:"${folder.path}"`)
-          .sort_by('public_id', 'desc')
-          .max_results(50)
-          .execute();
+        // 2. Get resources in the folder using the resources API
+        // This is often more reliable than 'search' if indexing is slow
+        const resourcesResult = await new Promise<any>((resolve, reject) => {
+          cloudinary.api.resources({
+            type: 'upload',
+            prefix: folder.path,
+            max_results: 100
+          }, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          });
+        });
 
-        const resources: CloudinaryResource[] = searchResult.resources;
-
+        const resources = resourcesResult.resources;
         if (!resources || resources.length === 0) return null;
 
         const uploadDate = new Date(resources[0].created_at).toLocaleDateString('th-TH', {
@@ -71,18 +57,18 @@ export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<Al
         });
 
         return {
-          id: folder.name, 
-          title: folder.name.replace(/-/g, ' '), 
-          date: uploadDate, 
-          coverUrl: resources[0].secure_url, 
-          images: resources.map((img: CloudinaryResource, index: number) => ({
+          id: folder.name,
+          title: folder.name.replace(/-/g, ' '),
+          date: uploadDate,
+          coverUrl: resources[0].secure_url,
+          images: resources.map((img: any, index: number) => ({
             id: img.public_id || `img_${index}`,
             url: img.secure_url,
-            caption: (img.filename || '').replace(/-/g, ' ') 
+            caption: (img.filename || '').replace(/-/g, ' ')
           }))
         } as AlbumData;
       } catch (err) {
-        console.error(`Error searching folder ${folder.path}:`, err);
+        console.error(`Error fetching resources for ${folder.path}:`, err);
         return null;
       }
     });
@@ -91,7 +77,7 @@ export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<Al
     return albums.filter((album): album is AlbumData => album !== null);
 
   } catch (error) {
-    console.error(`Error fetching albums from ${mainFolder}:`, error);
+    console.error("Error in fetchAllAlbumsInMainFolder:", error);
     return [];
   }
 }
@@ -99,15 +85,18 @@ export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<Al
 export async function fetchSingleAlbum(mainFolder: string, folderName: string): Promise<AlbumData | null> {
   try {
     const fullPath = `${mainFolder}/${folderName}`;
-    
-    const searchResult = await cloudinary.search
-      .expression(`folder:"${fullPath}"`)
-      .sort_by('public_id', 'desc')
-      .max_results(100)
-      .execute();
+    const resourcesResult = await new Promise<any>((resolve, reject) => {
+      cloudinary.api.resources({
+        type: 'upload',
+        prefix: fullPath,
+        max_results: 500
+      }, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      });
+    });
 
-    const resources: CloudinaryResource[] = searchResult.resources;
-
+    const resources = resourcesResult.resources;
     if (!resources || resources.length === 0) return null;
 
     const uploadDate = new Date(resources[0].created_at).toLocaleDateString('th-TH', {
@@ -119,15 +108,14 @@ export async function fetchSingleAlbum(mainFolder: string, folderName: string): 
       title: folderName.replace(/-/g, ' '),
       date: uploadDate,
       coverUrl: resources[0].secure_url,
-      images: resources.map((img: CloudinaryResource, index: number) => ({
+      images: resources.map((img: any, index: number) => ({
         id: img.public_id || `img_${index}`,
         url: img.secure_url,
         caption: (img.filename || '').replace(/-/g, ' ')
       }))
     } as AlbumData;
-
   } catch (error) {
-    console.error(`Error fetching single album ${folderName}:`, error);
+    console.error(`Error in fetchSingleAlbum ${folderName}:`, error);
     return null;
   }
 }
