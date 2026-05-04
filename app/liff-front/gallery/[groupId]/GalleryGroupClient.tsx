@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { AlbumData } from "@/lib/getImageCloudinary";
+import ShareButton from "../ShareButton";
+
 
 type Props = {
   group: AlbumData;
@@ -125,6 +127,16 @@ export default function GalleryGroupClient({ group }: Props) {
             {selectedImage.caption && (
               <p className="text-center text-sm text-gray-300 mb-4">{selectedImage.caption}</p>
             )}
+
+            {/* Share button — centered above nav */}
+            <div className="flex justify-center mb-3">
+              <ShareButton
+                imageUrl={selectedImage.url}
+                caption={selectedImage.caption}
+                albumTitle={group.title}
+              />
+            </div>
+
             <div className="flex items-center justify-between gap-4">
               <button
                 onClick={goPrev}
