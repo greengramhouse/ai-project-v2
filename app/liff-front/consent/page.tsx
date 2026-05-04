@@ -13,7 +13,7 @@ export default function ConsentPage() {
 
   const handleAccept = async () => {
     if (!profile) return;
-    
+
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/user/consent", {
@@ -36,10 +36,9 @@ export default function ConsentPage() {
           timer: 2000,
           showConfirmButton: false,
         });
-        // ให้เวลา SweetAlert แสดงผลนิดหน่อยแล้วค่อย redirect
+        // ใช้ window.location.href เพื่อล้าง Cache และเริ่มใหม่ที่หน้าแรกจริงๆ
         setTimeout(() => {
-          router.push("/liff-front");
-          window.location.reload(); // โหลดหน้าใหม่เพื่อให้ Context อัปเดตสถานะล่าสุด
+          window.location.href = "/liff-front";
         }, 1500);
       } else {
         throw new Error("Failed to update consent");
@@ -92,11 +91,33 @@ export default function ConsentPage() {
               <p>
                 เพื่อให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA) ระบบของเราจำเป็นต้องขอความยินยอมจากท่านในการเข้าถึงและแสดงผลข้อมูลดังต่อไปนี้:
               </p>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>ข้อมูลรายชื่อนักเรียน (ชื่อ-นามสกุล, ห้องเรียน)</li>
-                <li>ข้อมูลกิจกรรมและรูปภาพในกิจกรรมต่างๆ</li>
-                <li>ข้อมูลโปรไฟล์ LINE ของท่านเพื่อระบุตัวตนในการเข้าใช้งาน</li>
-              </ul>
+              <div className="space-y-2">
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>ข้อมูลรายชื่อนักเรียน (ชื่อ-นามสกุล, ห้องเรียน)</li>
+                  <li>ข้อมูลกิจกรรมและรูปภาพในกิจกรรมต่างๆ</li>
+                  <li>ข้อมูลโปรไฟล์ LINE ของท่านเพื่อระบุตัวตนในการเข้าใช้งาน</li>
+                  <li>ระบบอาจมีการบันทึกประวัติการเข้าใช้งาน (Log) เพื่อความปลอดภัย</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <p className="font-semibold text-gray-700 dark:text-gray-200">2. การรับรู้ข่าวสารและการแจ้งเตือน</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>ท่านยินยอมรับการแจ้งเตือน ข่าวประชาสัมพันธ์ และปฏิทินวิชาการ ผ่านช่องทาง LINE</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-semibold text-gray-700 dark:text-gray-200">3. ข้อตกลงการรักษาความลับข้อมูลนักเรียน</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>ท่านรับทราบว่า ข้อมูลรายชื่อนักเรียนและภาพกิจกรรม เป็นข้อมูลส่วนบุคคล</li>
+                  <li>ท่านตกลงที่จะใช้ข้อมูลเหล่านี้เพื่อประโยชน์ทางการศึกษาและการบริหารจัดการภายในโรงเรียนเท่านั้น และ<span className="text-red-500 font-medium">จะไม่นำไปเผยแพร่ภายนอกโดยไม่ได้รับอนุญาต</span></li>
+                </ul>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 mt-4">
+                <p className="text-blue-600 dark:text-blue-400 text-xs leading-normal">
+                  * หากท่านมีข้อสงสัย หรือต้องการเพิกถอนความยินยอมในภายหลัง สามารถติดต่อได้ที่ฝ่ายธุรการโรงเรียน
+                </p>
+              </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
                 <p className="text-blue-600 dark:text-blue-400 text-xs leading-normal">
                   * ข้อมูลดังกล่าวจะถูกใช้เพื่อวัตถุประสงค์ในการติดตามผลการเรียน กิจกรรม และการสื่อสารภายในโรงเรียนเท่านั้น โดยจะไม่มีการนำไปเผยแพร่ภายนอกโดยไม่ได้รับอนุญาต
@@ -122,7 +143,7 @@ export default function ConsentPage() {
               "ยอมรับและเข้าใช้งาน"
             )}
           </button>
-          
+
           <button
             onClick={() => liff.closeWindow()}
             className="w-full py-4 bg-transparent text-gray-400 dark:text-gray-500 font-medium text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
