@@ -74,8 +74,8 @@ export default function EditNewsClient() {
       );
       const isAdmin =
         profile?.userId && ADMIN_USER_IDS.includes(profile.userId);
-
-      if (!isAdmin) {
+        
+        if (!isAdmin) {
         Swal.fire({
           icon: "error",
           title: "การเข้าถึงถูกปฏิเสธ",

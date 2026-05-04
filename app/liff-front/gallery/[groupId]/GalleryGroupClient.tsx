@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { GalleryGroup } from "../data";
+import { AlbumData } from "@/lib/getImageCloudinary";
 
 type Props = {
-  group: GalleryGroup;
+  group: AlbumData;
 };
 
 export default function GalleryGroupClient({ group }: Props) {

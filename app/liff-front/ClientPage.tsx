@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useLiff } from "./layout";
-import { galleryGroups } from "./gallery/data";
+import type { AlbumData } from "@/lib/getImageCloudinary";
 
 import NewsList from "../components/NewList";
 import Header from "../components/Header";
@@ -17,9 +17,11 @@ import Swal from "sweetalert2";
 export default function ClientPage({
   initialEvents,
   initialNews,
+  initialAlbums,
 }: {
   initialEvents: any[];
   initialNews: any[];
+  initialAlbums: AlbumData[];
 }) {
   const { profile, isReady } = useLiff();
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
@@ -125,7 +127,7 @@ export default function ClientPage({
         <section>
           <h2 className="font-bold text-gray-800 dark:text-white mb-4">ภาพกิจกรรม 📸</h2>
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
-            {galleryGroups.map((group) => (
+            {initialAlbums.map((group) => (
               <Link
                 key={group.id}
                 href={`/liff-front/gallery/${group.id}`}
