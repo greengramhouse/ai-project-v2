@@ -57,9 +57,6 @@ function LiffLayoutInner({
     }
 
     const initLiff = async () => {
-      // ถ้าพร้อมแล้วและมีโปรไฟล์แล้ว ไม่ต้องโหลดซ้ำ (ป้องกันการโหลดซ้ำทุกครั้งที่เปลี่ยนหน้า)
-      if (isReady && profile) return;
-
       try {
         const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
         if (!liffId) console.warn("ยังไม่ได้ตั้งค่า NEXT_PUBLIC_LIFF_ID");
@@ -69,22 +66,24 @@ function LiffLayoutInner({
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
 
-          // ดึงสิทธิ์ (Role) และการยอมรับ Consent จากฐานข้อมูล (ใช้ no-store ป้องกัน Loop)
+          // 🆕 ดึงข้อมูลโดยเติม Timestamp เพื่อป้องกัน Cache 100%
           try {
-            const res = await fetch(`/api/user/${userProfile.userId}`, { cache: "no-store" });
+            const res = await fetch(`/api/user/${userProfile.userId}?t=${Date.now()}`, { 
+              cache: "no-store",
+              headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+            });
+            
             if (res.ok) {
               const data = await res.json();
-              const dbRole = data.role;
+              console.log("User Data fetched:", data); // ดูค่าใน Console
               
-              const isDbAdmin = dbRole === "admin" || ADMIN_USER_IDS.includes(userProfile.userId);
-              const isDbTeacher = dbRole === "teacher" || isDbAdmin;
-              
-              setIsAdmin(isDbAdmin);
-              setIsTeacher(isDbTeacher);
-              setAcceptedConsent(data.acceptedConsent || false);
+              setAcceptedConsent(!!data.acceptedConsent);
+              setIsAdmin(data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
+              setIsTeacher(data.role === "teacher" || data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
 
-              // Redirect to consent page if not accepted
-              if (!data.acceptedConsent && pathname !== "/liff-front/consent") {
+              // 🚩 ตรวจสอบการ Redirect
+              if (!data.acceptedConsent && !pathname.includes("/consent")) {
+                console.log("Redirecting to consent because acceptedConsent is false");
                 router.push("/liff-front/consent");
               }
             }
@@ -95,16 +94,12 @@ function LiffLayoutInner({
         setIsReady(true);
       } catch (error: any) {
         console.error("LIFF Init Error:", error);
-        setProfile({
-          userId: "U_MOCK_USER_ID",
-          displayName: "ผู้ใช้งานระบบ (Demo)",
-        });
         setIsReady(true);
       }
     };
 
     initLiff();
-  }, [pathname, router, isReady, profile]);
+  }, [pathname, router]);
 
   const toggleTheme = () => {
     if (theme === "light") {
