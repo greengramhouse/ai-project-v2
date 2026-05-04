@@ -29,7 +29,7 @@ export default function ShareButton({ imageUrl, caption, albumTitle }: ShareButt
               previewImageUrl: imageUrl,
             },
           ],
-          { isMultiple: false }
+          { isMultiple: true }
         );
         setShared(true);
         setTimeout(() => setShared(false), 2500);

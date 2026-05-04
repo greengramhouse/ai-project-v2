@@ -82,7 +82,7 @@ export default function GalleryGroupClient({ group }: Props) {
       {/* Full Screen Viewer with Zoom */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col h-[100dvh]"
           onClick={() => setSelectedIndex(null)}
         >
           {/* Viewer Top Bar */}
@@ -115,7 +115,7 @@ export default function GalleryGroupClient({ group }: Props) {
                   alt={selectedImage.caption || ""}
                   width={900}
                   height={675}
-                  className="max-h-[75dvh] object-contain"
+                  className="max-h-[60dvh] object-contain"
                   onClick={(e) => e.stopPropagation()}
                 />
               </TransformComponent>
@@ -123,7 +123,7 @@ export default function GalleryGroupClient({ group }: Props) {
           </div>
 
           {/* Caption & Navigation */}
-          <div className="shrink-0 px-4 py-4" onClick={(e) => e.stopPropagation()}>
+          <div className="shrink-0 px-4 pt-2 pb-6 pb-safe" onClick={(e) => e.stopPropagation()}>
             {selectedImage.caption && (
               <p className="text-center text-sm text-gray-300 mb-4">{selectedImage.caption}</p>
             )}
