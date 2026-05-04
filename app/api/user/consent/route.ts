@@ -3,17 +3,27 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { lineUserId, acceptedConsent } = await request.json();
+    const { lineUserId, acceptedConsent, displayName, pictureUrl } = await request.json();
 
     if (!lineUserId) {
       return NextResponse.json({ error: "Missing lineUserId" }, { status: 400 });
     }
 
-    const user = await prisma.userProfile.update({
+    const user = await prisma.userProfile.upsert({
       where: { lineUserId },
-      data: {
+      update: {
         acceptedConsent,
         consentDate: acceptedConsent ? new Date() : null,
+        displayName: displayName || undefined,
+        pictureUrl: pictureUrl || undefined,
+      },
+      create: {
+        lineUserId,
+        acceptedConsent,
+        consentDate: acceptedConsent ? new Date() : null,
+        displayName: displayName || null,
+        pictureUrl: pictureUrl || null,
+        role: "user", // Default role
       },
     });
 

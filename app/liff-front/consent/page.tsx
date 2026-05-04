@@ -21,6 +21,8 @@ export default function ConsentPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lineUserId: profile.userId,
+          displayName: profile.displayName,
+          pictureUrl: profile.pictureUrl,
           acceptedConsent: true,
         }),
       });
