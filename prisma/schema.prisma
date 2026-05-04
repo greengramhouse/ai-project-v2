@@ -60,6 +60,11 @@ model UserProfile {
   firstName   String?
   lastName    String?
   role        String   @default("user") // "user", "teacher", "admin"
+  
+  // Consent fields for PDPA
+  acceptedConsent Boolean  @default(false)
+  consentDate     DateTime?
+
   // Relations: เชื่อมไปยังประวัติแชทและเซสชัน OCR
   ocrSessions OcrSession[]
 

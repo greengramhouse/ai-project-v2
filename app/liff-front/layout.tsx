@@ -11,6 +11,7 @@ export const LiffContext = createContext<{
   toggleTheme: () => void;
   isAdmin: boolean;
   isTeacher: boolean;
+  acceptedConsent: boolean;
 }>({
   profile: null,
   isReady: false,
@@ -18,6 +19,7 @@ export const LiffContext = createContext<{
   toggleTheme: () => { },
   isAdmin: false,
   isTeacher: false,
+  acceptedConsent: false,
 });
 
 const ADMIN_USER_IDS = [process.env.NEXT_PUBLIC_ADMIN_UID].filter(Boolean);
@@ -35,6 +37,7 @@ function LiffLayoutInner({
   const [theme, setTheme] = useState("light");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isTeacher, setIsTeacher] = useState(false);
+  const [acceptedConsent, setAcceptedConsent] = useState(false);
 
   // นำ Navigation Hooks มาไว้ใน Layout
   const router = useRouter();
@@ -63,7 +66,7 @@ function LiffLayoutInner({
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
 
-          // ดึงสิทธิ์ (Role) จากฐานข้อมูล
+          // ดึงสิทธิ์ (Role) และการยอมรับ Consent จากฐานข้อมูล
           try {
             const res = await fetch(`/api/user/${userProfile.userId}`);
             if (res.ok) {
@@ -75,12 +78,18 @@ function LiffLayoutInner({
               
               setIsAdmin(isDbAdmin);
               setIsTeacher(isDbTeacher);
+              setAcceptedConsent(data.acceptedConsent || false);
+
+              // Redirect to consent page if not accepted
+              if (!data.acceptedConsent && pathname !== "/liff-front/consent") {
+                router.push("/liff-front/consent");
+              }
             } else {
               setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
               setIsTeacher(ADMIN_USER_IDS.includes(userProfile.userId));
             }
           } catch (e) {
-            console.error("Error fetching role:", e);
+            console.error("Error fetching user data:", e);
             setIsAdmin(ADMIN_USER_IDS.includes(userProfile.userId));
             setIsTeacher(ADMIN_USER_IDS.includes(userProfile.userId));
           }
@@ -104,7 +113,7 @@ function LiffLayoutInner({
     };
 
     initLiff();
-  }, []);
+  }, [pathname, router]);
 
   const toggleTheme = () => {
     if (theme === "light") {
@@ -133,7 +142,7 @@ function LiffLayoutInner({
   }
 
   return (
-    <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme, isAdmin, isTeacher }}>
+    <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme, isAdmin, isTeacher, acceptedConsent }}>
       {/* หน้าจอโหลดข้อมูลระหว่างรอ LIFF พร้อม */}
       {!isReady && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">

@@ -170,10 +170,6 @@ function StudentTableContent() {
                     <div className="px-4 pb-5 pt-1 border-t border-gray-50 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">เลขประจำตัวประชาชน</p>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{student.citizen_id || "-"}</p>
-                        </div>
-                        <div className="space-y-1">
                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">วันเกิด</p>
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{formatThaiDate(student.birth_date)}</p>
                         </div>
