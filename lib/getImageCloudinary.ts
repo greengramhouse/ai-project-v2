@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-// import { cacheLife } from 'next/cache';
-import { connection } from 'next/server';
+import { cacheLife, cacheTag } from 'next/cache';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -36,7 +35,10 @@ interface CloudinaryResource {
 }
 
 export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<AlbumData[]> {
-    await connection();
+  "use cache";
+  cacheLife('hours');
+  cacheTag('gallery');  
+  
 
   try {
     // ✅ จุดที่แก้ไข 1: เปลี่ยนจาก subfolders() เป็น sub_folders()
