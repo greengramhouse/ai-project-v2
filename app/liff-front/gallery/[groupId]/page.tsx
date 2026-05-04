@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import { fetchAllAlbumsInMainFolder } from "@/lib/getImageCloudinary";
+import { fetchSingleAlbum } from "@/lib/getImageCloudinary";
 import GalleryGroupClient from "./GalleryGroupClient";
 
-// ชื่อโฟลเดอร์หลักใน Cloudinary — ปรับให้ตรงกับ folder จริงของคุณ
+// ชื่อโฟลเดอร์หลักใน Cloudinary
 const MAIN_FOLDER = "samples";
 
 type Props = {
@@ -12,8 +12,8 @@ type Props = {
 export default async function GalleryGroupPage({ params }: Props) {
   const { groupId } = await params;
 
-  const allAlbums = await fetchAllAlbumsInMainFolder(MAIN_FOLDER);
-  const group = allAlbums.find((a) => a.id === groupId);
+  // ดึงแค่ข้อมูลของอัลบั้มนี้อัลบั้มเดียว
+  const group = await fetchSingleAlbum(MAIN_FOLDER, groupId);
 
   if (!group) {
     notFound();

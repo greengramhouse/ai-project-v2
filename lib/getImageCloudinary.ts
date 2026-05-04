@@ -99,3 +99,42 @@ export async function fetchAllAlbumsInMainFolder(mainFolder: string): Promise<Al
     return [];
   }
 }
+
+export async function fetchSingleAlbum(mainFolder: string, folderName: string): Promise<AlbumData | null> {
+  "use cache";
+  cacheLife('hours');
+  
+  try {
+    const fullPath = `${mainFolder}/${folderName}`;
+    
+    const searchResult = await cloudinary.search
+      .expression(`folder:${fullPath}`)
+      .sort_by('public_id', 'desc')
+      .max_results(100)
+      .execute();
+
+    const resources: CloudinaryResource[] = searchResult.resources;
+
+    if (!resources || resources.length === 0) return null;
+
+    const uploadDate = new Date(resources[0].created_at).toLocaleDateString('th-TH', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+
+    return {
+      id: folderName,
+      title: folderName.replace(/-/g, ' '),
+      date: uploadDate,
+      coverUrl: resources[0].secure_url,
+      images: resources.map((img: CloudinaryResource, index: number) => ({
+        id: index + 1,
+        url: img.secure_url,
+        caption: img.filename.replace(/-/g, ' ')
+      }))
+    } as AlbumData;
+
+  } catch (error) {
+    console.error(`Error fetching single album ${folderName}:`, error);
+    return null;
+  }
+}
