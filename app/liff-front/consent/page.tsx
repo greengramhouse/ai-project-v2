@@ -7,7 +7,7 @@ import liff from "@line/liff";
 import { useLiff } from "../layout";
 
 export default function ConsentPage() {
-  const { profile, isReady, theme, acceptedConsent } = useLiff();
+  const { profile, isReady, theme, acceptedConsent, setAcceptedConsent } = useLiff();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -36,9 +36,12 @@ export default function ConsentPage() {
           timer: 2000,
           showConfirmButton: false,
         });
-        // ใช้ window.location.href เพื่อล้าง Cache และเริ่มใหม่ที่หน้าแรกจริงๆ
+        // 2. 👈 ลบ window.location.href ออก แล้วใส่โค้ด 3 บรรทัดนี้แทน
+        setAcceptedConsent(true); // บอก Layout ว่ากดยอมรับแล้วนะ
+        router.refresh();         // เคลียร์แคชฝั่งเบราว์เซอร์เบาๆ
+
         setTimeout(() => {
-          window.location.href = "/liff-front";
+          router.push("/liff-front"); // เด้งไปหน้าแรกแบบนุ่มนวล
         }, 1500);
       } else {
         throw new Error("Failed to update consent");

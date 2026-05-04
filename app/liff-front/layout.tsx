@@ -12,6 +12,7 @@ export const LiffContext = createContext<{
   isAdmin: boolean;
   isTeacher: boolean;
   acceptedConsent: boolean;
+  setAcceptedConsent: (value: boolean) => void; // 👈 เติมบรรทัดนี้
 }>({
   profile: null,
   isReady: false,
@@ -20,6 +21,7 @@ export const LiffContext = createContext<{
   isAdmin: false,
   isTeacher: false,
   acceptedConsent: false,
+  setAcceptedConsent: () => {}, // 👈 เติมบรรทัดนี้
 });
 
 const ADMIN_USER_IDS = [process.env.NEXT_PUBLIC_ADMIN_UID].filter(Boolean);
@@ -44,6 +46,7 @@ function LiffLayoutInner({
   const pathname = usePathname();
 
   useEffect(() => {
+    // โหลด Theme (โค้ดเดิมของคุณ)
     const savedTheme = localStorage.getItem("school-theme");
     if (
       savedTheme === "dark" ||
@@ -66,26 +69,18 @@ function LiffLayoutInner({
           const userProfile = await liff.getProfile();
           setProfile(userProfile);
 
-          // 🆕 ดึงข้อมูลโดยเติม Timestamp เพื่อป้องกัน Cache 100%
+          // ดึงข้อมูลจาก API แค่ครั้งเดียว
           try {
-            const res = await fetch(`/api/user/${userProfile.userId}?t=${Date.now()}`, { 
+            const res = await fetch(`/api/user/${userProfile.userId}?t=${Date.now()}`, {
               cache: "no-store",
               headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
             });
-            
+
             if (res.ok) {
               const data = await res.json();
-              console.log("User Data fetched:", data); // ดูค่าใน Console
-              
               setAcceptedConsent(!!data.acceptedConsent);
               setIsAdmin(data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
               setIsTeacher(data.role === "teacher" || data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
-
-              // 🚩 ตรวจสอบการ Redirect
-              if (!data.acceptedConsent && !pathname.includes("/consent")) {
-                console.log("Redirecting to consent because acceptedConsent is false");
-                router.push("/liff-front/consent");
-              }
             }
           } catch (e) {
             console.error("Error fetching user data:", e);
@@ -94,12 +89,26 @@ function LiffLayoutInner({
         setIsReady(true);
       } catch (error: any) {
         console.error("LIFF Init Error:", error);
+        setLiffError(error.message); // ตรวจจับ Error ได้ดีขึ้น
         setIsReady(true);
       }
     };
 
-    initLiff();
-  }, [pathname, router]);
+    // ป้องกันการรันซ้ำ
+    if (!isReady) {
+      initLiff();
+    }
+
+    // 🚩 สังเกตตรงนี้: เราเปลี่ยนเป็น Array ว่าง [] เพื่อให้รันแค่ครั้งเดียว!
+  }, []);
+
+  useEffect(() => {
+    // ถ้า LIFF พร้อมแล้ว + มีข้อมูลโปรไฟล์ + ยังไม่ยอมรับ Consent + ไม่ได้อยู่ในหน้า Consent
+    if (isReady && profile && !acceptedConsent && !pathname.includes("/consent")) {
+      console.log("Redirecting to consent...");
+      router.push("/liff-front/consent");
+    }
+  }, [isReady, profile, acceptedConsent, pathname, router]);
 
   const toggleTheme = () => {
     if (theme === "light") {
@@ -128,7 +137,7 @@ function LiffLayoutInner({
   }
 
   return (
-    <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme, isAdmin, isTeacher, acceptedConsent }}>
+    <LiffContext.Provider value={{ profile, isReady, theme, toggleTheme, isAdmin, isTeacher, acceptedConsent, setAcceptedConsent }}>
       {/* หน้าจอโหลดข้อมูลระหว่างรอ LIFF พร้อม */}
       {!isReady && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">
@@ -159,8 +168,8 @@ function LiffLayoutInner({
               <button
                 onClick={() => router.push("/liff-front")}
                 className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${pathname === "/liff-front" || pathname === "/liff-front/"
-                    ? "text-[#06C755]"
-                    : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                  ? "text-[#06C755]"
+                  : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   }`}
               >
                 <svg
@@ -179,8 +188,8 @@ function LiffLayoutInner({
               <button
                 onClick={() => router.push("/liff-front/events")}
                 className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${pathname.includes("/events")
-                    ? "text-[#06C755]"
-                    : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                  ? "text-[#06C755]"
+                  : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   }`}
               >
                 <svg
@@ -205,9 +214,9 @@ function LiffLayoutInner({
               <button
                 onClick={() => router.push("/liff-front/profile")}
                 className={`flex flex-col items-center gap-1 w-16 md:w-24 group transition-colors ${pathname.includes("/profile") ||
-                    pathname.includes("/register")
-                    ? "text-[#06C755]"
-                    : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                  pathname.includes("/register")
+                  ? "text-[#06C755]"
+                  : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   }`}
               >
                 <svg
