@@ -12,6 +12,38 @@ type Props = {
   group: AlbumData;
 };
 
+// Component สำหรับแสดงรูปภาพแต่ละใบพร้อม Skeleton loading
+function GalleryImageItem({ img, index, onClick }: { img: any, index: number, onClick: () => void }) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative aspect-square overflow-hidden rounded-xl cursor-pointer group bg-gray-800/50 ${isLoading ? "animate-pulse" : ""}`}
+    >
+      <Image
+        src={img.url}
+        alt={img.caption || `ภาพที่ ${index + 1}`}
+        fill
+        className={`object-cover transition-all duration-700 group-hover:scale-110 ${isLoading ? "opacity-0 scale-105" : "opacity-100 scale-100"}`}
+        sizes="(max-width: 768px) 33vw, 25vw"
+        onLoadingComplete={() => setIsLoading(false)}
+      />
+
+      {/* Hover Overlay - แสดงเฉพาะเมื่อโหลดเสร็จแล้ว */}
+      {!isLoading && (
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-end p-2">
+          {img.caption && (
+            <p className="text-white text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2 drop-shadow">
+              {img.caption}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function GalleryGroupClient({ group }: Props) {
   const router = useRouter();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -54,27 +86,12 @@ export default function GalleryGroupClient({ group }: Props) {
       <main className="p-3">
         <div className="grid grid-cols-3 gap-1.5 md:grid-cols-4 lg:grid-cols-5">
           {group.images.map((img, index) => (
-            <div
+            <GalleryImageItem
               key={img.id}
+              img={img}
+              index={index}
               onClick={() => setSelectedIndex(index)}
-              className="relative aspect-square overflow-hidden rounded-xl cursor-pointer group"
-            >
-              <Image
-                src={img.url}
-                alt={img.caption || `ภาพที่ ${index + 1}`}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-110"
-                sizes="(max-width: 768px) 33vw, 25vw"
-              />
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-end p-2">
-                {img.caption && (
-                  <p className="text-white text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2 drop-shadow">
-                    {img.caption}
-                  </p>
-                )}
-              </div>
-            </div>
+            />
           ))}
         </div>
       </main>
