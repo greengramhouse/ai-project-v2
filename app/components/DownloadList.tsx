@@ -57,7 +57,7 @@ const MOCK_DOCS: DocumentItem[] = [
 export default function DownloadList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activePreview, setActivePreview] = useState<string | null>(null);
-  
+
   const filteredDocs = MOCK_DOCS.filter((doc) =>
     doc.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
