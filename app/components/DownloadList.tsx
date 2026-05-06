@@ -5,54 +5,12 @@ import { useState } from "react";
 interface DocumentItem {
   id: string;
   name: string;
-  updatedAt: string;
+  updatedAt?: string;
+  createdAt?: string;
   downloadUrl: string;
   previewUrl: string;
   category?: string;
 }
-
-const MOCK_DOCS: DocumentItem[] = [
-  {
-    id: "1",
-    name: "คู่มือการใช้งานระบบธุรการสำหรับครู.pdf",
-    updatedAt: "2024-05-01 10:30",
-    downloadUrl: "https://drive.google.com/uc?export=download&id=131hD9RDCAsZnQcR4hf4xaXgK_wTtUFLY",
-    previewUrl: "https://drive.google.com/file/d/131hD9RDCAsZnQcR4hf4xaXgK_wTtUFLY/preview",
-    category: "คู่มือ",
-  },
-  {
-    id: "2",
-    name: "คำสั่งศิลปะหัตกรรม",
-    updatedAt: "2024-04-25 14:20",
-    downloadUrl: "https://1drv.ms/b/c/aa926f0c45edd500/IQC3AImsly_-SIRkcx8OvN9jAdkPVeYYFMYOlJbBP6HqzuU?e=yXwHt7",
-    previewUrl: "https://1drv.ms/b/c/aa926f0c45edd500/IQC3AImsly_-SIRkcx8OvN9jAdkPVeYYFMYOlJbBP6HqzuU?e=yXwHt7",
-    category: "คำสั่ง",
-  },
-  {
-    id: "3",
-    name: "ปฏิทินการศึกษา ประจำปีการศึกษา 2567.pdf",
-    updatedAt: "2024-05-02 09:00",
-    downloadUrl: "https://dl.dropbox.com/scl/fi/c5b2dasrxh2lnn6be4cs6/1.-WHO-recommendations.pdf?rlkey=6vf9it22o553lj3m7lb6ipbib&st=f2idprm2&dl=0",
-    previewUrl: "https://dl.dropbox.com/scl/fi/c5b2dasrxh2lnn6be4cs6/1.-WHO-recommendations.pdf?rlkey=6vf9it22o553lj3m7lb6ipbib&st=f2idprm2&dl=0",
-    category: "วิชาการ",
-  },
-  {
-    id: "4",
-    name: "ระเบียบการแต่งกายนักเรียน.pdf",
-    updatedAt: "2024-03-15 11:45",
-    downloadUrl: "#",
-    previewUrl: "#",
-    category: "ระเบียบ",
-  },
-  {
-    id: "5",
-    name: "ประกาศรายชื่อนักเรียนใหม่ ปีการศึกษา 2567.pdf",
-    updatedAt: "2024-04-30 16:15",
-    downloadUrl: "#",
-    previewUrl: "#",
-    category: "ประกาศ",
-  },
-];
 
 /**
  * ฟังก์ชันช่วยแปลงลิงก์ Google Drive ให้สามารถแสดงใน iframe ได้
@@ -69,12 +27,12 @@ const getEmbedUrl = (url: string) => {
   return url;
 };
 
-export default function DownloadList() {
+export default function DownloadList({ initialDownloads }: { initialDownloads: DocumentItem[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activePreview, setActivePreview] = useState<string | null>(null);
 
-  const filteredDocs = MOCK_DOCS.filter((doc) =>
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDocs = (initialDownloads || []).filter((doc) =>
+    (doc.name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -117,7 +75,11 @@ export default function DownloadList() {
                       {doc.category}
                     </span>
                     <span className="text-[10px] text-gray-400">
-                      อัปเดต: {doc.updatedAt}
+                      อัปเดต: {doc.updatedAt || (doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('th-TH', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      }) : "-")}
                     </span>
                   </div>
                   <h3 className="font-bold text-gray-800 dark:text-white text-sm truncate group-hover:text-[#06C755] transition-colors">

@@ -19,10 +19,12 @@ export default function ClientPage({
   initialEvents,
   initialNews,
   initialAlbums,
+  initialDownloads,
 }: {
   initialEvents: any[];
   initialNews: any[];
   initialAlbums: AlbumData[];
+  initialDownloads: any[];
 }) {
   const { profile, isReady } = useLiff();
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
@@ -160,7 +162,7 @@ export default function ClientPage({
           <div className="flex justify-between mb-4">
             <h2 className="font-bold text-gray-800 dark:text-white">ดาวน์โหลดเอกสาร 📁</h2>
           </div>
-          <DownloadList />
+          <DownloadList initialDownloads={initialDownloads} />
         </section>
       </main>
     </div>
