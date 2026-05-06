@@ -1,8 +1,9 @@
+import { connection } from "next/server";
 import { firebaseAdmin } from "./firebase-admin";
 
 
 export async function getUrlForDownload() {
-
+    connection()
     try{
        const snapshot = await firebaseAdmin.collection('url_download').get();
 
