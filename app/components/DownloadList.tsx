@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import liff from "@line/liff";
 
 interface DocumentItem {
   id: string;
@@ -34,6 +35,33 @@ export default function DownloadList({ initialDownloads }: { initialDownloads: D
   const filteredDocs = (initialDownloads || []).filter((doc) =>
     (doc.name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleShare = async (name: string, url: string) => {
+    try {
+      if (liff.isInClient() && liff.isApiAvailable("shareTargetPicker")) {
+        await liff.shareTargetPicker(
+          [
+            {
+              type: "text",
+              text: `📁 เอกสาร: ${name}\n🔗 ดาวน์โหลดได้ที่: ${url}`,
+            },
+          ],
+          { isMultiple: true }
+        );
+      } else if (navigator.share) {
+        await navigator.share({
+          title: name,
+          text: `ดาวน์โหลดเอกสาร: ${name}`,
+          url: url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        // แสดง UI แจ้งเตือนเล็กน้อย (ถ้ามี)
+      }
+    } catch (error) {
+      console.warn("Share action failed:", error);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -75,10 +103,10 @@ export default function DownloadList({ initialDownloads }: { initialDownloads: D
                       {doc.category}
                     </span>
                     <span className="text-[10px] text-gray-400">
-                      อัปเดต: {doc.updatedAt || (doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('th-TH', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
+                      อัปเดต: {doc.updatedAt || (doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('th-TH', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
                       }) : "-")}
                     </span>
                   </div>
@@ -89,7 +117,7 @@ export default function DownloadList({ initialDownloads }: { initialDownloads: D
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     <button
                       onClick={() => setActivePreview(doc.previewUrl)}
-                      className="flex-1 min-w-[100px] py-2 px-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-200 text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                      className="flex-1 min-w-[80px] py-2 px-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-200 text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -99,12 +127,21 @@ export default function DownloadList({ initialDownloads }: { initialDownloads: D
                     </button>
                     <button
                       onClick={() => window.open(doc.downloadUrl, "_blank")}
-                      className="flex-1 min-w-[100px] py-2 px-2 bg-[#06C755]/10 hover:bg-[#06C755]/20 text-[#06C755] text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                      className="flex-1 min-w-[80px] py-2 px-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                       Download
+                    </button>
+                    <button
+                      onClick={() => handleShare(doc.name, doc.downloadUrl)}
+                      className="flex-1 min-w-[80px] py-2 px-2 bg-[#06C755]/10 hover:bg-[#06C755]/20 text-[#06C755] text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.13.031-.195.031-.211 0-.41-.101-.538-.274l-2.494-3.405v3.085c0 .348-.283.629-.63.629-.345 0-.627-.281-.627-.629V8.108c0-.27.173-.51.43-.595.06-.023.129-.033.199-.033.195 0 .399.1.526.274l2.492 3.401V8.108c0-.345.282-.63.63-.63.345 0 .629.285.629.63v4.771zm-5.741 0c0 .348-.282.629-.631.629-.345 0-.627-.281-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.281-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
+                      </svg>
+                      Share
                     </button>
                   </div>
                 </div>
