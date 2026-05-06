@@ -11,6 +11,7 @@ import type { AlbumData } from "@/lib/getImageCloudinary";
 import NewsList from "../components/NewList";
 import Header from "../components/Header";
 import EventListCach from "../components/EventListCach";
+import DownloadList from "../components/DownloadList";
 import Swal from "sweetalert2";
 
 
@@ -152,6 +153,14 @@ export default function ClientPage({
               </Link>
             ))}
           </div>
+        </section>
+
+        {/* DOWNLOAD DOCUMENTS */}
+        <section>
+          <div className="flex justify-between mb-4">
+            <h2 className="font-bold text-gray-800 dark:text-white">ดาวน์โหลดเอกสาร 📁</h2>
+          </div>
+          <DownloadList />
         </section>
       </main>
     </div>
