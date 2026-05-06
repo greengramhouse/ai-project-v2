@@ -32,8 +32,8 @@ const MOCK_DOCS: DocumentItem[] = [
     id: "3",
     name: "ปฏิทินการศึกษา ประจำปีการศึกษา 2567.pdf",
     updatedAt: "2024-05-02 09:00",
-    downloadUrl: "#",
-    previewUrl: "#",
+    downloadUrl: "https://dl.dropbox.com/scl/fi/c5b2dasrxh2lnn6be4cs6/1.-WHO-recommendations.pdf?rlkey=6vf9it22o553lj3m7lb6ipbib&st=f2idprm2&dl=0",
+    previewUrl: "https://dl.dropbox.com/scl/fi/c5b2dasrxh2lnn6be4cs6/1.-WHO-recommendations.pdf?rlkey=6vf9it22o553lj3m7lb6ipbib&st=f2idprm2&dl=0",
     category: "วิชาการ",
   },
   {
@@ -55,29 +55,18 @@ const MOCK_DOCS: DocumentItem[] = [
 ];
 
 /**
- * ฟังก์ชันช่วยแปลงลิงก์จากแหล่งต่างๆ ให้สามารถแสดงใน iframe ได้
+ * ฟังก์ชันช่วยแปลงลิงก์ Google Drive ให้สามารถแสดงใน iframe ได้
  */
 const getEmbedUrl = (url: string) => {
   if (!url || url === "#") return "";
 
-  // 1. Google Drive: แปลง /view เป็น /preview
-  if (url.includes("drive.google.com")) {
-    if (url.includes("/view")) return url.replace("/view", "/preview");
-    return url;
+  // จัดการเฉพาะ Google Drive: แปลง /view เป็น /preview
+  if (url.includes("drive.google.com") && url.includes("/view")) {
+    return url.replace("/view", "/preview");
   }
 
-  // 2. Dropbox: เปลี่ยน dl=0 เป็น raw=1
-  if (url.includes("dropbox.com")) {
-    return url.replace("dl=0", "raw=1");
-  }
-
-  // 3. OneDrive: ถ้ามี embed อยู่แล้วให้ใช้เลย ถ้าไม่มีให้ใช้ Google Viewer ครอบ
-  if (url.includes("onedrive.live.com") && url.includes("embed")) {
-    return url;
-  }
-
-  // 4. กรณีอื่นๆ (Direct PDF link หรืออื่นๆ): ใช้ Google Viewer ครอบเพื่อให้เปิดได้แน่นอน
-  return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+  // แหล่งอื่นๆ ให้ส่ง URL เดิมกลับไป
+  return url;
 };
 
 export default function DownloadList() {
