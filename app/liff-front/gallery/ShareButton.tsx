@@ -34,14 +34,37 @@ export default function ShareButton({ imageUrl, caption, albumTitle }: ShareButt
         setShared(true);
         setTimeout(() => setShared(false), 2500);
       } else if (navigator.share) {
-        // Fallback: Web Share API (ใช้ได้บน Safari/Android)
-        await navigator.share({
-          title: albumTitle,
-          text: caption || albumTitle,
-          url: imageUrl,
-        });
-        setShared(true);
-        setTimeout(() => setShared(false), 2500);
+        // Fallback: Web Share API (แปลงเป็นรูปภาพก่อนแชร์)
+        try {
+          // 1. โหลดภาพจาก URL มาแปลงเป็น Blob
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          
+          // 2. สร้างเป็น File Object (ตั้งชื่อและระบุ type ให้ชัดเจน)
+          const file = new File([blob], 'shared-image.jpg', { type: blob.type || 'image/jpeg' });
+
+          // 3. เช็คว่า Browser และ OS ของผู้ใช้รองรับการแชร์แบบแนบไฟล์หรือไม่
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file], // แชร์เป็นก้อนไฟล์รูปภาพ
+              title: albumTitle,
+              text: caption || albumTitle,
+            });
+          } else {
+            // ถ้า Browser ไม่รองรับการส่งไฟล์ ให้ถอยกลับไปแชร์แบบ URL เหมือนเดิม
+            await navigator.share({
+              title: albumTitle,
+              text: caption || albumTitle,
+              url: imageUrl,
+            });
+          }
+
+          setShared(true);
+          setTimeout(() => setShared(false), 2500);
+        } catch (error) {
+          console.error("Error sharing image:", error);
+          // อาจจะเพิ่มแจ้งเตือนผู้ใช้ตรงนี้ถ้าระบบแชร์ทำงานล้มเหลว
+        }
       } else {
         // Fallback สุดท้าย: copy link
         await navigator.clipboard.writeText(imageUrl);
