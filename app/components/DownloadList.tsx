@@ -22,18 +22,18 @@ const MOCK_DOCS: DocumentItem[] = [
   },
   {
     id: "2",
-    name: "แบบฟอร์มคำขอลาพักผ่อน.pdf",
+    name: "คำสั่งศิลปะหัตกรรม",
     updatedAt: "2024-04-25 14:20",
-    downloadUrl: "https://www.dropbox.com/scl/fi/d1soeqe3bqf0497g9iqvv/2..pdf?rlkey=td6v057ujgo5l41plyvol6zn2&st=k9k4kc4o&dl=0",
-    previewUrl: "https://www.dropbox.com/scl/fi/d1soeqe3bqf0497g9iqvv/2..pdf?rlkey=td6v057ujgo5l41plyvol6zn2&st=k9k4kc4o&dl=0",
-    category: "แบบฟอร์ม",
+    downloadUrl: "https://1drv.ms/b/c/aa926f0c45edd500/IQC3AImsly_-SIRkcx8OvN9jAdkPVeYYFMYOlJbBP6HqzuU?e=yXwHt7",
+    previewUrl: "https://1drv.ms/b/c/aa926f0c45edd500/IQC3AImsly_-SIRkcx8OvN9jAdkPVeYYFMYOlJbBP6HqzuU?e=yXwHt7",
+    category: "คำสั่ง",
   },
   {
     id: "3",
     name: "ปฏิทินการศึกษา ประจำปีการศึกษา 2567.pdf",
     updatedAt: "2024-05-02 09:00",
-    downloadUrl: "https://1drv.ms/b/c/aa926f0c45edd500/IQC3AImsly_-SIRkcx8OvN9jAdkPVeYYFMYOlJbBP6HqzuU?e=48pR8h",
-    previewUrl: "https://1drv.ms/b/c/aa926f0c45edd500/IQC3AImsly_-SIRkcx8OvN9jAdkPVeYYFMYOlJbBP6HqzuU?e=48pR8h",
+    downloadUrl: "#",
+    previewUrl: "#",
     category: "วิชาการ",
   },
   {
@@ -53,6 +53,32 @@ const MOCK_DOCS: DocumentItem[] = [
     category: "ประกาศ",
   },
 ];
+
+/**
+ * ฟังก์ชันช่วยแปลงลิงก์จากแหล่งต่างๆ ให้สามารถแสดงใน iframe ได้
+ */
+const getEmbedUrl = (url: string) => {
+  if (!url || url === "#") return "";
+
+  // 1. Google Drive: แปลง /view เป็น /preview
+  if (url.includes("drive.google.com")) {
+    if (url.includes("/view")) return url.replace("/view", "/preview");
+    return url;
+  }
+
+  // 2. Dropbox: เปลี่ยน dl=0 เป็น raw=1
+  if (url.includes("dropbox.com")) {
+    return url.replace("dl=0", "raw=1");
+  }
+
+  // 3. OneDrive: ถ้ามี embed อยู่แล้วให้ใช้เลย ถ้าไม่มีให้ใช้ Google Viewer ครอบ
+  if (url.includes("onedrive.live.com") && url.includes("embed")) {
+    return url;
+  }
+
+  // 4. กรณีอื่นๆ (Direct PDF link หรืออื่นๆ): ใช้ Google Viewer ครอบเพื่อให้เปิดได้แน่นอน
+  return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+};
 
 export default function DownloadList() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -164,7 +190,7 @@ export default function DownloadList() {
             {/* Iframe Body */}
             <div className="flex-1 bg-gray-50 dark:bg-black/20">
               <iframe
-                src={activePreview}
+                src={getEmbedUrl(activePreview)}
                 className="w-full h-full border-none"
                 allow="autoplay"
               />
