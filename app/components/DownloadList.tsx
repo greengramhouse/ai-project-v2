@@ -56,6 +56,7 @@ const MOCK_DOCS: DocumentItem[] = [
 
 export default function DownloadList() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activePreview, setActivePreview] = useState<string | null>(null);
   
   const filteredDocs = MOCK_DOCS.filter((doc) =>
     doc.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -110,7 +111,7 @@ export default function DownloadList() {
 
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     <button
-                      onClick={() => window.open(doc.previewUrl, "_blank")}
+                      onClick={() => setActivePreview(doc.previewUrl)}
                       className="flex-1 min-w-[100px] py-2 px-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-200 text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,6 +140,45 @@ export default function DownloadList() {
           </div>
         )}
       </div>
+
+      {/* Modal Preview with Iframe */}
+      {activePreview && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl h-[80vh] bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+              <h4 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#06C755] rounded-full animate-pulse" />
+                แสดงตัวอย่างเอกสาร
+              </h4>
+              <button
+                onClick={() => setActivePreview(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Iframe Body */}
+            <div className="flex-1 bg-gray-50 dark:bg-black/20">
+              <iframe
+                src={activePreview}
+                className="w-full h-full border-none"
+                allow="autoplay"
+              />
+            </div>
+
+            {/* Modal Footer (Optional) */}
+            <div className="p-3 bg-gray-50 dark:bg-gray-800/50 flex justify-center">
+              <p className="text-[10px] text-gray-400 italic">
+                * หากไม่สามารถดูได้ กรุณาใช้ปุ่มดาวน์โหลดแทน
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
