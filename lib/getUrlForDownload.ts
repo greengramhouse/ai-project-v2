@@ -3,7 +3,7 @@ import { connection } from "next/server";
 
 
 export async function getUrlForDownload() {
-    connection()
+    await connection();
     try{
        const snapshot = await firebaseAdmin.collection('url_download').get();
 
