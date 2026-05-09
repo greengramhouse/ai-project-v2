@@ -38,6 +38,28 @@ async function handleTextMessage(event: any, userId: string, chatId: string, rep
   let text = event.message.text.trim();
   const lowerText = text.toLowerCase();
 
+  // 0. จัดการคำสั่งสร้าง QR Code (qr/...)
+  if (lowerText.startsWith("qr/")) {
+    const qrData = text.substring(3).trim();
+    if (qrData) {
+      // ใช้บริการ API สาธารณะสำหรับสร้าง QR Code
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrData)}`;
+      return replyLineMessage(replyToken, [
+        {
+          type: "image",
+          originalContentUrl: qrUrl,
+          previewImageUrl: qrUrl
+        }
+      ]);
+    } else {
+      return replyLineMessage(replyToken, [{
+        type: "text",
+        text: "กรุณาระบุข้อความหรือ URL ที่ต้องการสร้าง QR Code ด้วยค่ะ\nตัวอย่าง: qr/https://google.com"
+      }]);
+    }
+  }
+
+
   // 1. จัดการคำสั่ง "ocr"
   if (lowerText === "ocr" && userId) { 
     // 🆕 แก้ปัญหาการใช้งานในกลุ่ม: ตรวจสอบและบันทึกโปรไฟล์ก่อนสร้าง Session เสมอ
