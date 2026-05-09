@@ -15,6 +15,14 @@ const TYPE_PREFIXES: Record<string, string> = {
   INTERNAL_MEMO: "บข.",
 };
 
+const generateFullDocNum = (type: string, runningNumber: number | string, year: number | string) => {
+  if (type === "ORDER" || type === "ANNOUNCEMENT") {
+    return `${runningNumber}/${year}`;
+  }
+  const prefix = TYPE_PREFIXES[type] ?? "";
+  return `${prefix}${runningNumber}`;
+};
+
 const currentBuddhistYear = new Date().getFullYear() + 543;
 
 const today = typeof window !== 'undefined' ? new Date().toISOString().split('T')[0] : '';
@@ -82,10 +90,9 @@ export default function DocumentForm({ mode, item, onClose, onSuccess }: Props) 
   const set = (field: keyof DocumentRegistryInput, value: string | number | boolean) => {
     setForm((prev) => {
       const newState = { ...prev, [field]: value };
-      // ถ้าเปลี่ยนลำดับที่ ให้พยายามอัปเดตเลขที่หนังสือเต็มให้ด้วย (ถ้าไม่ได้กรอกเองจนต่างไปมาก)
-      if (field === "runningNumber") {
-        const prefix = TYPE_PREFIXES[newState.type] ?? "";
-        newState.fullDocumentNumber = `${prefix}${value}`;
+      // ถ้าเปลี่ยนลำดับที่ ประเภท หรือปี ให้พยายามอัปเดตเลขที่หนังสือเต็มให้ด้วย
+      if (field === "runningNumber" || field === "type" || field === "buddhistYear") {
+        newState.fullDocumentNumber = generateFullDocNum(newState.type, newState.runningNumber, newState.buddhistYear);
       }
       return newState;
     });
@@ -100,7 +107,7 @@ export default function DocumentForm({ mode, item, onClose, onSuccess }: Props) 
         setForm(prev => ({ 
           ...prev, 
           runningNumber: nextNum,
-          fullDocumentNumber: `${TYPE_PREFIXES[prev.type] ?? ""}${nextNum}`
+          fullDocumentNumber: generateFullDocNum(prev.type, nextNum, prev.buddhistYear)
         }));
       };
       fetchNext();
@@ -109,11 +116,10 @@ export default function DocumentForm({ mode, item, onClose, onSuccess }: Props) 
 
   const autoGenNumber = async () => {
     const nextNum = await getNextRunningNumber(form.type, form.buddhistYear);
-    const prefix = TYPE_PREFIXES[form.type] ?? "";
     setForm(prev => ({
       ...prev,
       runningNumber: nextNum,
-      fullDocumentNumber: `${prefix}${nextNum}`
+      fullDocumentNumber: generateFullDocNum(prev.type, nextNum, prev.buddhistYear)
     }));
   };
 
