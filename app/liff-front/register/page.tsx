@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 
 export default function RegisterTeacherPage() {
   // 1. รับค่า Profile และ Theme โดยตรงจาก Layout (ไม่ต้องทำ liff.init ซ้ำแล้ว)
-  const { profile, isReady, theme, toggleTheme } = useLiff();
+  const { profile, isReady, theme, toggleTheme, acceptedConsent } = useLiff();
   
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -69,7 +69,8 @@ export default function RegisterTeacherPage() {
     }
   }, [isReady, profile, router]);
 
-  if (!isReady || !profile) {
+  // 🛡️ เพิ่ม acceptedConsent เข้าไปในการเช็ค เพื่อไม่ให้เห็นหน้าแวบเดียวก่อนโดนเด้งไป Consent
+  if (!isReady || !profile || !acceptedConsent) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center transition-colors">
         <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
