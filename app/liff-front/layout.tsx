@@ -45,17 +45,6 @@ function LiffLayoutInner({
   const router = useRouter();
   const pathname = usePathname();
 
-  // 📥 ดักจับพารามิเตอร์ redirect ตั้งแต่เนิ่นๆ (กันหายตอน Redirect ไปหน้า Consent หรือ Login)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const redirect = searchParams.get('redirect');
-      if (redirect) {
-        localStorage.setItem('liff_redirect', redirect);
-      }
-    }
-  }, []);
-
   useEffect(() => {
     // โหลด Theme (โค้ดเดิมของคุณ)
     const savedTheme = localStorage.getItem("school-theme");
@@ -114,27 +103,10 @@ function LiffLayoutInner({
   }, []);
 
   useEffect(() => {
-    // 1. ถ้ายังไม่ยอมรับ Consent ให้ส่งไปหน้า Consent ก่อน
+    // ถ้า LIFF พร้อมแล้ว + มีข้อมูลโปรไฟล์ + ยังไม่ยอมรับ Consent + ไม่ได้อยู่ในหน้า Consent
     if (isReady && profile && !acceptedConsent && !pathname.includes("/consent")) {
+      console.log("Redirecting to consent...");
       router.push("/liff-front/consent");
-      return;
-    }
-
-    // 2. ถ้าทุกอย่างพร้อมแล้ว (Ready + Profile + Consent) ให้เช็คคิว Redirect ที่ค้างไว้
-    if (isReady && profile && acceptedConsent) {
-      const storedRedirect = localStorage.getItem('liff_redirect');
-      if (storedRedirect) {
-        // จะ Redirect เฉพาะตอนที่เราอยู่หน้าแรก หรือหน้า Consent เท่านั้น (กัน Loop)
-        if (pathname === "/liff-front" || pathname === "/liff-front/" || pathname.includes("/consent")) {
-          localStorage.removeItem('liff_redirect');
-          router.replace(storedRedirect);
-        }
-      }
-    }
-
-    // 3. 🛡️ ด่านตรวจความปลอดภัย: ถ้าพร้อมแล้วแต่ยังไม่ได้ Login และพยายามเข้าหน้าย่อย
-    if (isReady && !profile && pathname !== "/liff-front" && pathname !== "/liff-front/" && !pathname.includes("/consent")) {
-      router.push(`/liff-front?redirect=${pathname}`);
     }
   }, [isReady, profile, acceptedConsent, pathname, router]);
 

@@ -40,9 +40,7 @@ export default function ConsentPage() {
         setAcceptedConsent(true); // บอก Layout ว่ากดยอมรับแล้วนะ
         router.refresh();         // เคลียร์แคชฝั่งเบราว์เซอร์เบาๆ
 
-        setTimeout(() => {
-          router.push("/liff-front");
-        }, 1500);
+        router.push("/liff-front");
       } else {
         throw new Error("Failed to update consent");
       }

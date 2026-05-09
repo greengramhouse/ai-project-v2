@@ -40,12 +40,6 @@ export default function ClientPage({
   }, [isReady, profile]);
 
   const handleLogin = () => {
-    // เก็บค่า redirect ลง localStorage กันหายระหว่างทาง login
-    const searchParams = new URLSearchParams(window.location.search);
-    const redirectPath = searchParams.get('redirect');
-    if (redirectPath) {
-      localStorage.setItem('liff_redirect', redirectPath);
-    }
     liff.login();
   };
 
