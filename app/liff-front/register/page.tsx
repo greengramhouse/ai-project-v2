@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLiff } from "../layout"; // 🆕 นำเข้า Context เพื่อดึง Profile และ Theme
 import Swal from "sweetalert2";
@@ -60,6 +60,13 @@ export default function RegisterTeacherPage() {
   const handleGoBack = () => {
     window.history.back();
   };
+
+  // 🔒 ระบบป้องกัน: ถ้า LIFF พร้อมแล้วแต่ไม่มี Profile (ยังไม่ได้ Login) ให้ส่งกลับหน้าแรก
+  useEffect(() => {
+    if (isReady && !profile) {
+      router.push("/liff-front");
+    }
+  }, [isReady, profile, router]);
 
   if (!isReady || !profile) {
     return (
