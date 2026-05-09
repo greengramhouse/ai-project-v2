@@ -45,6 +45,17 @@ function LiffLayoutInner({
   const router = useRouter();
   const pathname = usePathname();
 
+  // 📥 ดักจับพารามิเตอร์ redirect ตั้งแต่เนิ่นๆ (กันหายตอน Redirect ไปหน้า Consent หรือ Login)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        localStorage.setItem('liff_redirect', redirect);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     // โหลด Theme (โค้ดเดิมของคุณ)
     const savedTheme = localStorage.getItem("school-theme");
