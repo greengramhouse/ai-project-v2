@@ -92,7 +92,7 @@ export default function ClientPage({
 
             <Link href="/liff-front/doccheck" className="flex flex-col items-center group">
               <div className="w-14 h-14 md:w-20 md:h-20 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-2">📄</div>
-              <span className="text-xs text-gray-600 dark:text-gray-300">เอกสารฝากเสนอ</span>
+              <span className="text-xs text-gray-600 dark:text-gray-300">ฝากเสนอ</span>
             </Link>
 
             <Link href="/" className="flex flex-col items-center group">
