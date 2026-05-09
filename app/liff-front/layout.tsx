@@ -131,6 +131,11 @@ function LiffLayoutInner({
         }
       }
     }
+
+    // 3. 🛡️ ด่านตรวจความปลอดภัย: ถ้าพร้อมแล้วแต่ยังไม่ได้ Login และพยายามเข้าหน้าย่อย
+    if (isReady && !profile && pathname !== "/liff-front" && pathname !== "/liff-front/" && !pathname.includes("/consent")) {
+      router.push(`/liff-front?redirect=${pathname}`);
+    }
   }, [isReady, profile, acceptedConsent, pathname, router]);
 
   const toggleTheme = () => {

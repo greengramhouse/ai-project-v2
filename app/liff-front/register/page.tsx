@@ -61,14 +61,6 @@ export default function RegisterTeacherPage() {
     window.history.back();
   };
 
-  // 🔒 ระบบป้องกัน: ถ้า LIFF พร้อมแล้วแต่ไม่มี Profile (ยังไม่ได้ Login) ให้ส่งกลับหน้าแรก
-  useEffect(() => {
-    if (isReady && !profile) {
-      // ส่งไปหน้าแรกพร้อมติดพารามิเตอร์ redirect เพื่อให้กลับมาหน้านี้หลัง Login
-      router.push("/liff-front?redirect=/liff-front/register");
-    }
-  }, [isReady, profile, router]);
-
   // 🛡️ เพิ่ม acceptedConsent เข้าไปในการเช็ค เพื่อไม่ให้เห็นหน้าแวบเดียวก่อนโดนเด้งไป Consent
   if (!isReady || !profile || !acceptedConsent) {
     return (
