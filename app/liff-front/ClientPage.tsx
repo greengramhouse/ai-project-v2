@@ -37,18 +37,29 @@ export default function ClientPage({
       const isAdmin = profile?.userId && ADMIN_USER_IDS.includes(profile.userId);
       setIsCheckingAuth(!!isAdmin);
 
-      // 🔄 ตรวจสอบว่ามีพารามิเตอร์ redirect หรือไม่ (ถ้า Login สำเร็จแล้วให้เด้งกลับ)
+      // 🔄 ตรวจสอบพารามิเตอร์ redirect (ทั้งจาก URL และ localStorage)
       if (profile) {
         const searchParams = new URLSearchParams(window.location.search);
-        const redirectPath = searchParams.get('redirect');
-        if (redirectPath) {
-          router.replace(redirectPath);
+        const urlRedirect = searchParams.get('redirect');
+        const storedRedirect = localStorage.getItem('liff_redirect');
+        
+        const finalRedirect = urlRedirect || storedRedirect;
+        
+        if (finalRedirect) {
+          localStorage.removeItem('liff_redirect'); // เคลียร์ค่าทิ้ง
+          router.replace(finalRedirect);
         }
       }
     }
   }, [isReady, profile, router]);
 
   const handleLogin = () => {
+    // เก็บค่า redirect ลง localStorage กันหายระหว่างทาง login
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectPath = searchParams.get('redirect');
+    if (redirectPath) {
+      localStorage.setItem('liff_redirect', redirectPath);
+    }
     liff.login();
   };
 
