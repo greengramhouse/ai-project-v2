@@ -36,8 +36,17 @@ export default function ClientPage({
       const ADMIN_USER_IDS = [process.env.NEXT_PUBLIC_ADMIN_UID].filter(Boolean);
       const isAdmin = profile?.userId && ADMIN_USER_IDS.includes(profile.userId);
       setIsCheckingAuth(!!isAdmin);
+
+      // 🔄 ตรวจสอบว่ามีพารามิเตอร์ redirect หรือไม่ (ถ้า Login สำเร็จแล้วให้เด้งกลับ)
+      if (profile) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectPath = searchParams.get('redirect');
+        if (redirectPath) {
+          router.replace(redirectPath);
+        }
+      }
     }
-  }, [isReady, profile]);
+  }, [isReady, profile, router]);
 
   const handleLogin = () => {
     liff.login();
