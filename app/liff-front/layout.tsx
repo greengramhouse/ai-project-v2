@@ -114,10 +114,22 @@ function LiffLayoutInner({
   }, []);
 
   useEffect(() => {
-    // ถ้า LIFF พร้อมแล้ว + มีข้อมูลโปรไฟล์ + ยังไม่ยอมรับ Consent + ไม่ได้อยู่ในหน้า Consent
+    // 1. ถ้ายังไม่ยอมรับ Consent ให้ส่งไปหน้า Consent ก่อน
     if (isReady && profile && !acceptedConsent && !pathname.includes("/consent")) {
-      console.log("Redirecting to consent...");
       router.push("/liff-front/consent");
+      return;
+    }
+
+    // 2. ถ้าทุกอย่างพร้อมแล้ว (Ready + Profile + Consent) ให้เช็คคิว Redirect ที่ค้างไว้
+    if (isReady && profile && acceptedConsent) {
+      const storedRedirect = localStorage.getItem('liff_redirect');
+      if (storedRedirect) {
+        // จะ Redirect เฉพาะตอนที่เราอยู่หน้าแรก หรือหน้า Consent เท่านั้น (กัน Loop)
+        if (pathname === "/liff-front" || pathname === "/liff-front/" || pathname.includes("/consent")) {
+          localStorage.removeItem('liff_redirect');
+          router.replace(storedRedirect);
+        }
+      }
     }
   }, [isReady, profile, acceptedConsent, pathname, router]);
 

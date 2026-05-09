@@ -41,14 +41,7 @@ export default function ConsentPage() {
         router.refresh();         // เคลียร์แคชฝั่งเบราว์เซอร์เบาๆ
 
         setTimeout(() => {
-          // 🔄 ตรวจสอบว่ามีคิวที่เคยฝากไว้ใน localStorage หรือไม่
-          const storedRedirect = localStorage.getItem('liff_redirect');
-          if (storedRedirect) {
-            localStorage.removeItem('liff_redirect'); // ใช้แล้วลบทิ้ง
-            router.push(storedRedirect);
-          } else {
-            router.push("/liff-front");
-          }
+          router.push("/liff-front");
         }, 1500);
       } else {
         throw new Error("Failed to update consent");

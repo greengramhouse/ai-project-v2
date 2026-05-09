@@ -36,22 +36,8 @@ export default function ClientPage({
       const ADMIN_USER_IDS = [process.env.NEXT_PUBLIC_ADMIN_UID].filter(Boolean);
       const isAdmin = profile?.userId && ADMIN_USER_IDS.includes(profile.userId);
       setIsCheckingAuth(!!isAdmin);
-
-      // 🔄 ตรวจสอบพารามิเตอร์ redirect (ทั้งจาก URL และ localStorage)
-      if (profile) {
-        const searchParams = new URLSearchParams(window.location.search);
-        const urlRedirect = searchParams.get('redirect');
-        const storedRedirect = localStorage.getItem('liff_redirect');
-        
-        const finalRedirect = urlRedirect || storedRedirect;
-        
-        if (finalRedirect) {
-          localStorage.removeItem('liff_redirect'); // เคลียร์ค่าทิ้ง
-          router.replace(finalRedirect);
-        }
-      }
     }
-  }, [isReady, profile, router]);
+  }, [isReady, profile]);
 
   const handleLogin = () => {
     // เก็บค่า redirect ลง localStorage กันหายระหว่างทาง login
