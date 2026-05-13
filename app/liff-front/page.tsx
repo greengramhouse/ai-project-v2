@@ -5,7 +5,7 @@ import { fetchAllAlbumsInMainFolder } from "@/lib/getImageCloudinary";
 import { getUrlForDownload } from "@/lib/getUrlForDownload";
 import { connection } from "next/server";
 
-const GALLERY_FOLDER = "samples"; // ← ปรับให้ตรงกับชื่อโฟลเดอร์ใน Cloudinary
+const GALLERY_FOLDER = "thaigham"; // ← ปรับให้ตรงกับชื่อโฟลเดอร์ใน Cloudinary
 
 export default async function LiffModernHomePage() {
   await connection();

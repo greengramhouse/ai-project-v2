@@ -3,7 +3,7 @@ import { fetchSingleAlbum } from "@/lib/getImageCloudinary";
 import GalleryGroupClient from "./GalleryGroupClient";
 
 // ชื่อโฟลเดอร์หลักใน Cloudinary
-const MAIN_FOLDER = "samples";
+const MAIN_FOLDER = "thaigham";
 
 type Props = {
   params: Promise<{ groupId: string }>;
