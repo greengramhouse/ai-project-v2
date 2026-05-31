@@ -59,40 +59,52 @@ function LiffLayoutInner({
       document.documentElement.classList.remove("dark");
     }
 
-    const initLiff = async () => {
+const initLiff = async () => {
+  try {
+    const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
+    if (!liffId) console.warn("ยังไม่ได้ตั้งค่า NEXT_PUBLIC_LIFF_ID");
+
+    // 1. สั่งเริ่มทำงาน LIFF โดยไม่ต้อง await ทิ้งไว้
+    liff.init({ liffId: liffId || "MOCK_LIFF_ID" }).catch((error: any) => {
+      console.error("LIFF Init Error:", error);
+      setLiffError(error.message);
+      setIsReady(true);
+    });
+
+    // 2. ใช้ liff.ready รอจนกว่า LIFF จะพร้อมจริงๆ แล้วค่อยดึงข้อมูล
+    await liff.ready;
+    
+    if (liff.isLoggedIn()) {
+      const userProfile = await liff.getProfile();
+      setProfile(userProfile);
+
+      // ดึงข้อมูลจาก API
       try {
-        const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
-        if (!liffId) console.warn("ยังไม่ได้ตั้งค่า NEXT_PUBLIC_LIFF_ID");
+        const res = await fetch(`/api/user/${userProfile.userId}?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
 
-        await liff.init({ liffId: liffId || "MOCK_LIFF_ID" });
-        if (liff.isLoggedIn()) {
-          const userProfile = await liff.getProfile();
-          setProfile(userProfile);
-
-          // ดึงข้อมูลจาก API แค่ครั้งเดียว
-          try {
-            const res = await fetch(`/api/user/${userProfile.userId}?t=${Date.now()}`, {
-              cache: "no-store",
-              headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              setAcceptedConsent(!!data.acceptedConsent);
-              setIsAdmin(data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
-              setIsTeacher(data.role === "teacher" || data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
-            }
-          } catch (e) {
-            console.error("Error fetching user data:", e);
-          }
+        if (res.ok) {
+          const data = await res.json();
+          setAcceptedConsent(!!data.acceptedConsent);
+          setIsAdmin(data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
+          setIsTeacher(data.role === "teacher" || data.role === "admin" || ADMIN_USER_IDS.includes(userProfile.userId));
         }
-        setIsReady(true);
-      } catch (error: any) {
-        console.error("LIFF Init Error:", error);
-        setLiffError(error.message); // ตรวจจับ Error ได้ดีขึ้น
-        setIsReady(true);
+      } catch (e) {
+        console.error("Error fetching user data:", e);
       }
-    };
+    }
+    
+    // ตั้งสถานะว่าระบบพร้อมแล้ว
+    setIsReady(true);
+
+  } catch (error: any) {
+    console.error("Unexpected Error:", error);
+    setLiffError(error.message);
+    setIsReady(true);
+  }
+};
 
     // ป้องกันการรันซ้ำ
     if (!isReady) {

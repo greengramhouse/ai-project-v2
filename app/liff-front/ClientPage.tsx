@@ -12,7 +12,6 @@ import NewsList from "../components/NewList";
 import Header from "../components/Header";
 import EventListCach from "../components/EventListCach";
 import DownloadList from "../components/DownloadList";
-import Swal from "sweetalert2";
 
 
 export default function ClientPage({
